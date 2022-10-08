@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id          String        @id @default(uuid())
+  address     String        @unique
+  email       String?
+  agreements  Agreement[]
+  signatures  Signature[]
+  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime      @default(now())
+}
+
+model Agreement {
+  id              String      @id @default(uuid())
+  requesterId     String
+  requester       UserProfile @relation(fields: [requesterId], references: [id])
+  cid             String
+  signatures      Signature[]
+  s3Storage       S3Storage?
+  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime    @default(now())
+}
+
+model Signature {
+  id              String      @id @default(uuid())
+  transactionHash String
+  signerId        String
+  signer          UserProfile @relation(fields: [signerId], references: [id])
+  agreementId     String
+  agreement       Agreement   @relation(fields: [agreementId], references: [id])
+  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime    @default(now())
+}
+
+model S3Storage {
+  id          String    @id @default(uuid())
+  bucket      String
+  key         String
+  agreementId String    @unique 
+  agreement   Agreement @relation(fields: [agreementId], references: [id])
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+}
