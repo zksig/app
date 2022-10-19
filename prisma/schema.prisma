@@ -10,12 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Network {
+  ETHEREUM
+  SOLANA
+}
+
 model UserProfile {
   id          String        @id @default(uuid())
-  address     String        @unique
-  email       String?
+  email       String        @unique
+  eth_address String?
+  sol_address String?
   agreements  Agreement[]
-  signatures  Signature[]
   updatedAt   DateTime      @updatedAt
   createdAt   DateTime      @default(now())
 }
@@ -25,6 +30,7 @@ model Agreement {
   requesterId     String
   requester       UserProfile @relation(fields: [requesterId], references: [id])
   cid             String
+  allowedNetworks Network[]   @default([ETHEREUM])
   signatures      Signature[]
   s3Storage       S3Storage?
   updatedAt       DateTime    @updatedAt
@@ -32,14 +38,14 @@ model Agreement {
 }
 
 model Signature {
-  id              String      @id @default(uuid())
-  transactionHash String
-  signerId        String
-  signer          UserProfile @relation(fields: [signerId], references: [id])
+  id              String        @id @default(uuid())
+  transactionHash String?
+  network         Network?
+  signerAddress   String?
   agreementId     String
-  agreement       Agreement   @relation(fields: [agreementId], references: [id])
-  updatedAt       DateTime    @updatedAt
-  createdAt       DateTime    @default(now())
+  agreement       Agreement     @relation(fields: [agreementId], references: [id])
+  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime      @default(now())
 }
 
 model S3Storage {
