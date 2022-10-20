@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "db": "docker run -ti --rm --net=host -e POSTGRES_PASSWORD=postgres postgres",
     "setup": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres prisma migrate dev",
     "predev": "prisma generate",
     "dev": "next dev",

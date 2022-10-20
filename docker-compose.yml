@@ -1,0 +1,30 @@
+version: "3"
+services:
+  next:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env.local
+    depends_on:
+      - db
+    volumes:
+      - ./:/opt/nextapp
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=dev@zksig.io
+      - PGADMIN_DEFAULT_PASSWORD=zksig
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
