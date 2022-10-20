@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "setup": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres prisma migrate dev",
+    "setup": "DATABASE_URL=postgres://postgres:postgres@db:5432/postgres prisma migrate dev",
     "predev": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.7.0",

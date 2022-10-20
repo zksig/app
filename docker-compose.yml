@@ -20,7 +20,7 @@ services:
       - ./servers.json:/pgadmin4/servers.json
     environment:
       - PGADMIN_DEFAULT_EMAIL=dev@zksig.io
-      - PGADMIN_DEFAULT_PASSWORD=zksig
+      - PGADMIN_DEFAULT_PASSWORD=d3vzk5!9
 
   db:
     image: postgres:latest
