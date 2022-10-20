@@ -275,7 +275,11 @@ export default function SidebarLayout({
             alt=""
           />
         </header>
-        <section className="p-12">{children}</section>
+        <section className="p-4" style={{ height: "calc(100vh - 64px)" }}>
+          <div className="h-full overflow-y-scroll rounded bg-white p-8">
+            {children}
+          </div>
+        </section>
       </main>
     </div>
   );

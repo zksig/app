@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "DATABASE_URL=postgres://postgres:postgres@db:5432/postgres prisma migrate dev && prisma generate",
+    "migrate:dev": "DATABASE_URL=postgres://postgres:postgres@db:5432/postgres prisma migrate dev",
+    "predev": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -17,6 +18,7 @@
     "@auth0/nextjs-auth0": "^1.9.2",
     "@graphql-yoga/node": "^2.13.13",
     "@headlessui/react": "^1.7.2",
+    "@headlessui/tailwindcss": "^0.1.1",
     "@heroicons/react": "^2.0.11",
     "@prisma/client": "^4.4.0",
     "autoprefixer": "^10.4.12",
