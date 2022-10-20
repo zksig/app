@@ -9,4 +9,4 @@ RUN yarn
 
 EXPOSE 3000
 
-CMD ["yarn", "setup", "&&", "yarn", "dev"]
+CMD ["yarn", "dev"]

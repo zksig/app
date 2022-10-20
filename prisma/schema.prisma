@@ -37,8 +37,7 @@ model Agreement {
   key                 String
 
   description_cid     String
-  description_bucket  String
-  description_key     String
+  description         Json
 
   signatures          Signature[]
 
