@@ -16,7 +16,7 @@ enum Network {
 }
 
 model UserProfile {
-  id          String        @id @default(uuid())
+  id          String        @id @default(cuid())
   email       String        @unique
   eth_address String?
   sol_address String?
@@ -26,34 +26,34 @@ model UserProfile {
 }
 
 model Agreement {
-  id              String      @id @default(uuid())
-  requesterId     String
-  requester       UserProfile @relation(fields: [requesterId], references: [id])
-  cid             String
-  allowedNetworks Network[]   @default([ETHEREUM])
-  signatures      Signature[]
-  s3Storage       S3Storage?
-  updatedAt       DateTime    @updatedAt
-  createdAt       DateTime    @default(now())
+  id                  String      @id @default(cuid())
+  network             Network     @default(SOLANA)
+
+  originatorId        String
+  originator          UserProfile @relation(fields: [originatorId], references: [id])
+
+  cid                 String
+  bucket              String
+  key                 String
+
+  description_cid     String
+  description_bucket  String
+  description_key     String
+
+  signatures          Signature[]
+
+  updatedAt           DateTime    @updatedAt
+  createdAt           DateTime    @default(now())
 }
 
 model Signature {
-  id              String        @id @default(uuid())
-  transactionHash String?
-  network         Network?
-  signerAddress   String?
-  agreementId     String
-  agreement       Agreement     @relation(fields: [agreementId], references: [id])
-  updatedAt       DateTime      @updatedAt
-  createdAt       DateTime      @default(now())
-}
-
-model S3Storage {
-  id          String    @id @default(uuid())
-  bucket      String
-  key         String
-  agreementId String    @unique 
-  agreement   Agreement @relation(fields: [agreementId], references: [id])
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
+  id                String        @id @default(cuid())
+  network           Network       @default(SOLANA)
+  transactionHash   String?
+  signerIdentifier  String
+  signerAddress     String?
+  agreementId       String
+  agreement         Agreement     @relation(fields: [agreementId], references: [id])
+  updatedAt         DateTime      @updatedAt
+  createdAt         DateTime      @default(now())
 }
