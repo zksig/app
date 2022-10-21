@@ -46,7 +46,7 @@ const MobileHeader = () => {
             <Menu.Items className="absolute right-0 top-0 h-screen w-2/5 bg-purple-100">
               <Menu.Item
                 as="a"
-                href="/"
+                href="/agreements"
                 className="my-2 flex w-full gap-2 px-2 py-4"
               >
                 <svg
@@ -153,7 +153,7 @@ const DesktopHeader = () => (
       </div>
     </div>
     <nav className="p-2">
-      <Link href="/">
+      <Link href="/agreements">
         <a
           href="#"
           className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900"
