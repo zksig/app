@@ -3,8 +3,17 @@ import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import Button from "../common/Button";
+import { useIPFS } from "../../providers/IPFSProvider";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+
+type AddFieldOptions = {
+  x: number;
+  y: number;
+  page: number;
+  identifier: string;
+};
 
 const ConfigureAgreement = ({
   pdf,
@@ -174,14 +183,14 @@ const Drop = ({
   pdf,
   currentPage,
   canvas,
-  onUpdatePdf,
+  onAddField,
   children,
 }: {
   pdf: Buffer | null;
   currentPage: number;
   canvas: RefObject<HTMLCanvasElement>;
+  onAddField: (options: AddFieldOptions) => void;
   children: ReactNode;
-  onUpdatePdf: (pdf: Buffer) => void;
 }) => {
   const [, drop] = useDrop(
     () => ({
@@ -194,18 +203,7 @@ const Drop = ({
         const y =
           rect.height - (monitor.getSourceClientOffset()!.y - rect.top) - 20;
 
-        const doc = await PDFDocument.load(pdf);
-
-        const field = doc.getForm().createTextField(Date.now().toString());
-        field.setText(`${item.title} signature`);
-        field.addToPage(doc.getPage(currentPage - 1), {
-          x,
-          y,
-          width: 100,
-          height: 14,
-        });
-
-        onUpdatePdf(Buffer.from(await doc.save()));
+        onAddField({ x, y, page: currentPage, identifier: item.title });
       },
     }),
     [pdf]
@@ -216,28 +214,20 @@ const Drop = ({
 
 const AddSignatures = ({
   pdf,
-  onUpdatePdf,
+  signers,
+  onAddSigner,
+  onUpdateSigner,
+  onAddField,
 }: {
   pdf: Buffer | null;
-  onUpdatePdf: (pdf: Buffer) => void;
+  signers: string[];
+  onAddSigner: (identifier?: string) => void;
+  onUpdateSigner: (oldIdentifier: string) => (newIdentifier: string) => void;
+  onAddField: (options: AddFieldOptions) => void;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [signers, setSigners] = useState<string[]>([]);
-
-  const handleAddSigner = (text: string) => {
-    setSigners((signers) => [...signers, text]);
-  };
-
-  const handleUpdateSigner = (index: number) => (text: string) => {
-    setSigners((signers) =>
-      signers.map((signer, i) => {
-        if (i === index) return text;
-        return signer;
-      })
-    );
-  };
 
   useEffect(() => {
     if (!pdf) return;
@@ -276,7 +266,7 @@ const AddSignatures = ({
         <div className="grid grid-cols-2">
           <Drop
             pdf={pdf}
-            onUpdatePdf={onUpdatePdf}
+            onAddField={onAddField}
             currentPage={currentPage}
             canvas={canvas}
           >
@@ -288,30 +278,15 @@ const AddSignatures = ({
               <Signature
                 key={i}
                 title={signer}
-                onSignerChange={handleUpdateSigner(i)}
+                onSignerChange={onUpdateSigner(signer)}
               />
             ))}
-            <button
-              className="m-auto my-4 flex w-48 justify-center gap-2 rounded bg-fuchsia-500 p-2 text-center text-white"
-              type="button"
-              onClick={() => handleAddSigner("New Signer")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
-              </svg>
-              <span>Add Signer</span>
-            </button>
+            <Button
+              className="m-auto"
+              iconName="add"
+              text="Add Signer"
+              onClick={() => onAddSigner()}
+            />
           </div>
         </div>
       </>
@@ -320,7 +295,100 @@ const AddSignatures = ({
 };
 
 const CreateAgreement = () => {
+  const ipfs = useIPFS();
   const [pdf, setPdf] = useState<Buffer | null>(null);
+  const [pdfDescription, setPdfDescription] = useState<
+    Record<string, string[]>
+  >({});
+
+  const handleCreateAgreement = async () => {
+    if (!ipfs || !pdf) return;
+
+    const [pdfIPFS, descriptionIPFS] = await Promise.all([
+      ipfs.add(pdf),
+      ipfs.add(JSON.stringify(pdfDescription)),
+    ]);
+
+    const res = await fetch("/api/agreements", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cid: pdfIPFS.cid.toV1().toString(),
+        description_cid: descriptionIPFS.cid.toV1().toString(),
+        description: pdfDescription,
+      }),
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      // TODO handle error with toast?
+    }
+
+    const agreement = await res.json();
+
+    // TODO call smart contract
+
+    // TODO add pdf to s3
+  };
+
+  const handleNewField = async ({
+    x,
+    y,
+    page,
+    identifier,
+  }: {
+    x: number;
+    y: number;
+    page: number;
+    identifier: string;
+  }) => {
+    if (!pdf) return;
+    const doc = await PDFDocument.load(pdf);
+
+    const fieldName = Date.now().toString();
+    const field = doc.getForm().createTextField(Date.now().toString());
+    field.setText(`${identifier} signature`);
+    field.addToPage(doc.getPage(page - 1), {
+      x,
+      y,
+      width: 100,
+      height: 14,
+    });
+
+    setPdfDescription((pdfDescription) => {
+      const copy = { ...pdfDescription };
+
+      let fields = copy[identifier];
+      if (!fields) fields = [];
+
+      copy[identifier] = [...fields, fieldName];
+
+      return copy;
+    });
+
+    setPdf(Buffer.from(await doc.save()));
+  };
+
+  const handleAddSigner = (text?: string) => {
+    setPdfDescription((pdfDescription) => ({
+      ...pdfDescription,
+      [text || `New Signer ${Object.keys(pdfDescription).length}`]: [],
+    }));
+  };
+
+  const handleUpdateSigner =
+    (oldIdentifier: string) => (newIdentifier: string) => {
+      setPdfDescription((pdfDescription) => {
+        return Object.fromEntries(
+          Object.entries(pdfDescription).map(([identifier, fields]) => {
+            if (identifier === oldIdentifier) return [newIdentifier, fields];
+            else return [identifier, fields];
+          })
+        );
+      });
+    };
 
   const handleFile = async (file: File) => {
     setPdf(Buffer.from(await file.arrayBuffer()));
@@ -330,7 +398,34 @@ const CreateAgreement = () => {
     <div>
       <h1 className="mb-8 text-4xl">Create New Agreement</h1>
       <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
-      <AddSignatures pdf={pdf} onUpdatePdf={setPdf} />
+      <Button
+        className="m-auto bg-fuchsia-500 hover:bg-fuchsia-400"
+        icon={
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15"
+            />
+          </svg>
+        }
+        text="Create Agreement"
+        onClick={handleCreateAgreement}
+      />
+      <AddSignatures
+        pdf={pdf}
+        signers={Object.keys(pdfDescription)}
+        onAddSigner={handleAddSigner}
+        onUpdateSigner={handleUpdateSigner}
+        onAddField={handleNewField}
+      />
     </div>
   );
 };

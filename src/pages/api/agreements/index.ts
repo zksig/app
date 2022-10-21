@@ -16,7 +16,6 @@ export default async function handle(
     }
 
     const agreement = await prisma.agreement.create({
-      select: {},
       data: {
         network: req.body.network,
         originatorId: session.user.id,

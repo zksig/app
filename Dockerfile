@@ -2,7 +2,6 @@ FROM node:latest
 
 WORKDIR /opt/nextapp
 
-COPY scripts ./
 COPY package*.json ./
 COPY yarn.lock ./
 
@@ -11,4 +10,4 @@ RUN yarn
 
 EXPOSE 3000
 
-ENTRYPOINT ./scripts/start.sh
+CMD ["yarn", "dev"]
