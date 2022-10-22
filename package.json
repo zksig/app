@@ -21,6 +21,7 @@
     "@headlessui/tailwindcss": "^0.1.1",
     "@heroicons/react": "^2.0.11",
     "@prisma/client": "^4.4.0",
+    "@project-serum/anchor": "^0.25.0",
     "@solana/wallet-adapter-base": "^0.9.18",
     "@solana/wallet-adapter-react": "^0.15.20",
     "@solana/wallet-adapter-react-ui": "^0.9.18",

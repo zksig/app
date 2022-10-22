@@ -9,6 +9,7 @@ import type { FC } from 'react';
 import { UserProvider } from "@auth0/nextjs-auth0";
 import React, { useMemo } from 'react';
 import "./styles/globals.css";
+import { IPFSProvider } from '../providers/IPFSProvider';
 
 // Use require instead of import since order matters
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -39,13 +40,15 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
 
     return (
       <UserProvider>
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
-                <WalletModalProvider>
-                    <Component {...pageProps} />
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
+        <IPFSProvider>
+            <ConnectionProvider endpoint={endpoint}>
+                <WalletProvider wallets={wallets} autoConnect>
+                    <WalletModalProvider>
+                        <Component {...pageProps} />
+                    </WalletModalProvider>
+                </WalletProvider>
+            </ConnectionProvider>
+        </IPFSProvider>
       </UserProvider>
     );
 };

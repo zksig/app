@@ -2,10 +2,16 @@ import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
+import * as anchor from "@project-serum/anchor";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Button from "../common/Button";
 import { useIPFS } from "../../providers/IPFSProvider";
-
+import { getProgram, getProvider } from "./utils";
+import { PublicKey } from "@solana/web3.js";
+import { useConnection } from "@solana/wallet-adapter-react";
+import {
+   web3
+} from '@project-serum/anchor';
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -296,6 +302,7 @@ const AddSignatures = ({
 
 const CreateAgreement = () => {
   const ipfs = useIPFS();
+  const {connection} = useConnection();
   const [pdf, setPdf] = useState<Buffer | null>(null);
   const [pdfDescription, setPdfDescription] = useState<
     Record<string, string[]>
@@ -325,11 +332,87 @@ const CreateAgreement = () => {
     if (!res.ok) {
       // TODO handle error with toast?
     }
-
-    const agreement = await res.json();
-
     // TODO call smart contract
 
+    const provider = getProvider(connection);
+    const program = await getProgram(connection)
+
+    const agreement = await res.json();
+    const [agreementFromKey] = await PublicKey.findProgramAddress(
+      [
+        anchor.utils.bytes.utf8.encode("a"),
+        anchor.utils.bytes.utf8.encode(agreement.id),
+        provider.wallet.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+    await program.methods
+    .createAgreement(agreement.id, pdfIPFS.cid.toV1().toString(), descriptionIPFS.cid.toV1().toString(), Object.keys(pdfDescription).length)
+    .accounts({
+      agreement: agreementFromKey,
+      originator: provider.wallet.publicKey,
+    })
+    .rpc();
+
+    //
+
+  // const transaction = new web3.Transaction()
+  // transaction.add([
+  //     {
+  //       data: 'some placeholder data',
+  //       programId: new web3.PublicKey('FqUDkQ5xq2XE7BecTN8u9R28xtLudP7FgCTC8vSLDEwL'),
+  //       keys: { isSigner: true, isWritable: true }
+  //     }
+  //   ]
+  //   )
+
+    //
+    
+
+    console.log('pdfDescription', pdfDescription)
+
+ for(let key of Object.keys(pdfDescription)) {
+    const [packet] = await PublicKey.findProgramAddress(
+      [
+        anchor.utils.bytes.utf8.encode("p"),
+        agreementFromKey.toBuffer(),
+        anchor.utils.bytes.utf8.encode(key),
+      ],
+      program.programId
+    );
+    await program.methods
+
+    .createSignaturePacket(key, null)
+    .accounts({
+      agreement: agreementFromKey,
+      packet,
+      originator: provider.wallet.publicKey,
+    })
+    .rpc();
+
+
+     // hits next api
+    const res = await fetch("/api/agreements", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cid: pdfIPFS.cid.toV1().toString(),
+        description_cid: descriptionIPFS.cid.toV1().toString(),
+        description: pdfDescription,
+      }),
+      credentials: "include",
+    });
+
+
+
+
+ }
+
+
+
+console.log('state from sc', await program.account.agreement.fetch(agreementFromKey))
     // TODO add pdf to s3
   };
 
