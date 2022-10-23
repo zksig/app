@@ -6,19 +6,19 @@ import React, { FC, useCallback, useState } from 'react';
 export const SendSolanaToAddress: FC = () => {
     const { connection } = useConnection();
     const { publicKey, sendTransaction, wallets, wallet} = useWallet();
-    const [address, setAddress] = useState('' as unknown)
+    const [address, setAddress] = useState('')
 
     const onClick = useCallback(async () => {
+        console.log('address', address)
         if (!publicKey) throw new WalletNotConnectedError();
 
         // 890880 lamports as of 2022-09-01
         let lamports = await connection.getMinimumBalanceForRentExemption(0);
 
-        console.log('publick key', publicKey)
         const transaction = new Transaction().add(
             SystemProgram.transfer({
                 fromPubkey: publicKey,
-                toPubkey: new PublicKey(address as PublicKey),
+                toPubkey: new PublicKey(address as unknown as PublicKey),
                 lamports,
             })
         );
@@ -31,7 +31,7 @@ export const SendSolanaToAddress: FC = () => {
         const signature = await sendTransaction(transaction, connection, { minContextSlot });
 
         await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
-    }, [publicKey, sendTransaction, connection]);
+    }, [publicKey, sendTransaction, connection, address]);
 
     return (
         <div>
