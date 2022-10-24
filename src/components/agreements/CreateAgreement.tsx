@@ -11,7 +11,7 @@ import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import {
    web3
-} from '@project-serum/anchor';
+} from "@project-serum/anchor";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -332,10 +332,10 @@ const CreateAgreement = () => {
     if (!res.ok) {
       // TODO handle error with toast?
     }
-    // TODO call smart contract
-
     const provider = getProvider(connection);
-    const program = await getProgram(connection)
+    const program = await getProgram(connection);
+    const tx = new web3.Transaction();
+
 
     const agreement = await res.json();
     const [agreementFromKey] = await PublicKey.findProgramAddress(
@@ -346,9 +346,6 @@ const CreateAgreement = () => {
       ],
       program.programId
     );
-
-  const tx = new web3.Transaction()
-//
 
 tx.add(
   await program.methods
@@ -385,10 +382,11 @@ const signers = (await Promise.all(
       })
       .transaction();
   })
+  
 ));
 
 for (let signer of signers) {
-  await tx.add(signer)
+  await tx.add(signer);
 }
 
 await provider.sendAndConfirm(tx);
