@@ -346,32 +346,27 @@ const CreateAgreement = () => {
       ],
       program.programId
     );
-    await program.methods
-    .createAgreement(agreement.id, pdfIPFS.cid.toV1().toString(), descriptionIPFS.cid.toV1().toString(), Object.keys(pdfDescription).length)
+
+  const tx = new web3.Transaction()
+//
+
+tx.add(
+  await program.methods
+    .createAgreement(
+      agreement.id,
+      pdfIPFS.cid.toV1().toString(),
+      descriptionIPFS.cid.toV1().toString(),
+      Object.keys(pdfDescription).length
+    )
     .accounts({
       agreement: agreementFromKey,
       originator: provider.wallet.publicKey,
     })
-    .rpc();
+    .transaction()
+);
 
-    //
-
-  // const transaction = new web3.Transaction()
-  // transaction.add([
-  //     {
-  //       data: 'some placeholder data',
-  //       programId: new web3.PublicKey('FqUDkQ5xq2XE7BecTN8u9R28xtLudP7FgCTC8vSLDEwL'),
-  //       keys: { isSigner: true, isWritable: true }
-  //     }
-  //   ]
-  //   )
-
-    //
-    
-
-    console.log('pdfDescription', pdfDescription)
-
- for(let key of Object.keys(pdfDescription)) {
+const signers = (await Promise.all(
+  Object.keys(pdfDescription).map(async (key) => {
     const [packet] = await PublicKey.findProgramAddress(
       [
         anchor.utils.bytes.utf8.encode("p"),
@@ -380,40 +375,24 @@ const CreateAgreement = () => {
       ],
       program.programId
     );
-    await program.methods
 
-    .createSignaturePacket(key, null)
-    .accounts({
-      agreement: agreementFromKey,
-      packet,
-      originator: provider.wallet.publicKey,
-    })
-    .rpc();
+    return program.methods
+      .createSignaturePacket(key, null)
+      .accounts({
+        agreement: agreementFromKey,
+        packet,
+        originator: provider.wallet.publicKey,
+      })
+      .transaction();
+  })
+));
 
+for (let signer of signers) {
+  await tx.add(signer)
+}
 
-     // hits next api
-    const res = await fetch("/api/agreements", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        cid: pdfIPFS.cid.toV1().toString(),
-        description_cid: descriptionIPFS.cid.toV1().toString(),
-        description: pdfDescription,
-      }),
-      credentials: "include",
-    });
-
-
-
-
- }
-
-
-
-console.log('state from sc', await program.account.agreement.fetch(agreementFromKey))
-    // TODO add pdf to s3
+await provider.sendAndConfirm(tx);
+//
   };
 
   const handleNewField = async ({
