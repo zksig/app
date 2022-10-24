@@ -1,30 +1,30 @@
 
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { UnsafeBurnerWalletAdapter, PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
-import type { AppProps } from 'next/app';
-import type { FC } from 'react';
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { UnsafeBurnerWalletAdapter, PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { clusterApiUrl } from "@solana/web3.js";
+import type { AppProps } from "next/app";
+import type { FC } from "react";
 import { UserProvider } from "@auth0/nextjs-auth0";
-import React, { useMemo } from 'react';
+import React, { useMemo } from "react";
 import "./styles/globals.css";
-import { IPFSProvider } from '../providers/IPFSProvider';
+import { IPFSProvider } from "../providers/IPFSProvider";
 
 // Use require instead of import since order matters
-require('@solana/wallet-adapter-react-ui/styles.css');
+require("@solana/wallet-adapter-react-ui/styles.css");
 // require('../styles/globals.css');
 
 const App: FC<AppProps> = ({ Component, pageProps }) => {
-    // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-    const network = WalletAdapterNetwork.Devnet;
+  // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
+  const network = WalletAdapterNetwork.Devnet;
 
-    // You can also provide a custom RPC endpoint
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // You can also provide a custom RPC endpoint
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-    const wallets = useMemo(
-        () => [
-            /**
+  const wallets = useMemo(
+    () => [
+      /**
              * Select the wallets you wish to support, by instantiating wallet adapters here.
              *
              * Common adapters can be found in the npm package `@solana/wallet-adapter-wallets`.
@@ -32,25 +32,25 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
              * will be compiled into your application, and only the dependencies of wallets that
              * your users connect to will be loaded.
              */
-            new UnsafeBurnerWalletAdapter(),
-            new PhantomWalletAdapter()
-        ],
-        []
-    );
+      new UnsafeBurnerWalletAdapter(),
+      new PhantomWalletAdapter()
+    ],
+    []
+  );
 
-    return (
-      <UserProvider>
-        <IPFSProvider>
-            <ConnectionProvider endpoint={endpoint}>
-                <WalletProvider wallets={wallets} autoConnect>
-                    <WalletModalProvider>
-                        <Component {...pageProps} />
-                    </WalletModalProvider>
-                </WalletProvider>
-            </ConnectionProvider>
-        </IPFSProvider>
-      </UserProvider>
-    );
+  return (
+    <UserProvider>
+      <IPFSProvider>
+        <ConnectionProvider endpoint={endpoint}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>
+              <Component {...pageProps} />
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </IPFSProvider>
+    </UserProvider>
+  );
 };
 
 export default App;

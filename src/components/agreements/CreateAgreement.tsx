@@ -10,7 +10,7 @@ import { getProgram, getProvider } from "./utils";
 import { PublicKey } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import {
-   web3
+  web3
 } from "@project-serum/anchor";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
@@ -347,50 +347,49 @@ const CreateAgreement = () => {
       program.programId
     );
 
-tx.add(
-  await program.methods
-    .createAgreement(
-      agreement.id,
-      pdfIPFS.cid.toV1().toString(),
-      descriptionIPFS.cid.toV1().toString(),
-      Object.keys(pdfDescription).length
-    )
-    .accounts({
-      agreement: agreementFromKey,
-      originator: provider.wallet.publicKey,
-    })
-    .transaction()
-);
-
-const signers = (await Promise.all(
-  Object.keys(pdfDescription).map(async (key) => {
-    const [packet] = await PublicKey.findProgramAddress(
-      [
-        anchor.utils.bytes.utf8.encode("p"),
-        agreementFromKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(key),
-      ],
-      program.programId
+    tx.add(
+      await program.methods
+        .createAgreement(
+          agreement.id,
+          pdfIPFS.cid.toV1().toString(),
+          descriptionIPFS.cid.toV1().toString(),
+          Object.keys(pdfDescription).length
+        )
+        .accounts({
+          agreement: agreementFromKey,
+          originator: provider.wallet.publicKey,
+        })
+        .transaction()
     );
 
-    return program.methods
-      .createSignaturePacket(key, null)
-      .accounts({
-        agreement: agreementFromKey,
-        packet,
-        originator: provider.wallet.publicKey,
+    const signers = (await Promise.all(
+      Object.keys(pdfDescription).map(async (key) => {
+        const [packet] = await PublicKey.findProgramAddress(
+          [
+            anchor.utils.bytes.utf8.encode("p"),
+            agreementFromKey.toBuffer(),
+            anchor.utils.bytes.utf8.encode(key),
+          ],
+          program.programId
+        );
+
+        return program.methods
+          .createSignaturePacket(key, null)
+          .accounts({
+            agreement: agreementFromKey,
+            packet,
+            originator: provider.wallet.publicKey,
+          })
+          .transaction();
       })
-      .transaction();
-  })
   
-));
+    ));
 
-for (let signer of signers) {
-  await tx.add(signer);
-}
+    for (let signer of signers) {
+      tx.add(signer);
+    }
 
-await provider.sendAndConfirm(tx);
-//
+    await provider.sendAndConfirm(tx);
   };
 
   const handleNewField = async ({
