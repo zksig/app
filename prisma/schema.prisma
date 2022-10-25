@@ -15,22 +15,11 @@ enum Network {
   SOLANA
 }
 
-model UserProfile {
-  id          String        @id @default(cuid())
-  email       String        @unique
-  eth_address String?
-  sol_address String?
-  agreements  Agreement[]
-  updatedAt   DateTime      @updatedAt
-  createdAt   DateTime      @default(now())
-}
-
 model Agreement {
   id                  String      @id @default(cuid())
   network             Network     @default(SOLANA)
-
-  originatorId        String
-  originator          UserProfile @relation(fields: [originatorId], references: [id])
+  identifier          String      @default("Agreement Name")
+  ownerAddress        String
 
   cid                 String
   bucket              String

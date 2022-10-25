@@ -31,4 +31,4 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   };
 };
 
-export default withPageAuthRequired(Profile);
+export default Profile;

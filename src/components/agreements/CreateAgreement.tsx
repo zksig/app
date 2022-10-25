@@ -6,12 +6,11 @@ import * as anchor from "@project-serum/anchor";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Button from "../common/Button";
 import { useIPFS } from "../../providers/IPFSProvider";
-import { getProgram, getProvider } from "./utils";
 import { PublicKey } from "@solana/web3.js";
-import { useConnection } from "@solana/wallet-adapter-react";
-import {
-  web3
-} from "@project-serum/anchor";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { web3 } from "@project-serum/anchor";
+import { toast } from "react-toastify";
+import { useSolana } from "../../providers/SolanaProvider";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -302,52 +301,49 @@ const AddSignatures = ({
 
 const CreateAgreement = () => {
   const ipfs = useIPFS();
-  const {connection} = useConnection();
+  const { program, provider } = useSolana();
   const [pdf, setPdf] = useState<Buffer | null>(null);
   const [pdfDescription, setPdfDescription] = useState<
     Record<string, string[]>
   >({});
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf) return;
+    if (!ipfs || !pdf || !program || !provider) return;
 
-    const [pdfIPFS, descriptionIPFS] = await Promise.all([
-      ipfs.add(pdf),
-      ipfs.add(JSON.stringify(pdfDescription)),
-    ]);
+    try {
+      const [pdfIPFS, descriptionIPFS] = await Promise.all([
+        ipfs.add(pdf),
+        ipfs.add(JSON.stringify(pdfDescription)),
+      ]);
 
-    const res = await fetch("/api/agreements", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        cid: pdfIPFS.cid.toV1().toString(),
-        description_cid: descriptionIPFS.cid.toV1().toString(),
-        description: pdfDescription,
-      }),
-      credentials: "include",
-    });
+      const res = await fetch("/api/agreements", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: "",
+          cid: pdfIPFS.cid.toV1().toString(),
+          description_cid: descriptionIPFS.cid.toV1().toString(),
+          description: pdfDescription,
+        }),
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      // TODO handle error with toast?
-    }
-    const provider = getProvider(connection);
-    const program = await getProgram(connection);
-    const tx = new web3.Transaction();
+      if (!res.ok) {
+        throw new Error("HTTP create agreement failed");
+      }
 
+      const agreement = await res.json();
 
-    const agreement = await res.json();
-    const [agreementFromKey] = await PublicKey.findProgramAddress(
-      [
-        anchor.utils.bytes.utf8.encode("a"),
-        anchor.utils.bytes.utf8.encode(agreement.id),
-        provider.wallet.publicKey.toBuffer(),
-      ],
-      program.programId
-    );
-
-    tx.add(
+      const [agreementFromKey] = await PublicKey.findProgramAddress(
+        [
+          anchor.utils.bytes.utf8.encode("agreement"),
+          anchor.utils.bytes.utf8.encode(agreement.id),
+          provider.wallet.publicKey.toBuffer(),
+        ],
+        program.programId
+      );
       await program.methods
         .createAgreement(
           agreement.id,
@@ -359,37 +355,10 @@ const CreateAgreement = () => {
           agreement: agreementFromKey,
           originator: provider.wallet.publicKey,
         })
-        .transaction()
-    );
-
-    const signers = (await Promise.all(
-      Object.keys(pdfDescription).map(async (key) => {
-        const [packet] = await PublicKey.findProgramAddress(
-          [
-            anchor.utils.bytes.utf8.encode("p"),
-            agreementFromKey.toBuffer(),
-            anchor.utils.bytes.utf8.encode(key),
-          ],
-          program.programId
-        );
-
-        return program.methods
-          .createSignaturePacket(key, null)
-          .accounts({
-            agreement: agreementFromKey,
-            packet,
-            originator: provider.wallet.publicKey,
-          })
-          .transaction();
-      })
-  
-    ));
-
-    for (let signer of signers) {
-      tx.add(signer);
+        .rpc();
+    } catch {
+      toast.error("Unable to create agreement");
     }
-
-    await provider.sendAndConfirm(tx);
   };
 
   const handleNewField = async ({

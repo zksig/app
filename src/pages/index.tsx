@@ -14,4 +14,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default withPageAuthRequired(Home);
+export default Home;

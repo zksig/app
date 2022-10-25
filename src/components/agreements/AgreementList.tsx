@@ -16,7 +16,7 @@ export default function AgreementList({
           href="#"
         >
           <section className="basis-1/2">
-            <p className="font-semibold">Agreement Name</p>
+            <p className="font-semibold">{agreement.identifier}</p>
             <p>{agreement.cid}</p>
             <Badge
               className="w-36 bg-slate-900"

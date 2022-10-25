@@ -1,15 +1,15 @@
 import type { GetServerSideProps, NextPage } from "next";
-import { getSession, withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { getCookie } from "cookies-next";
 import { Agreement, prisma, PrismaClient } from "@prisma/client";
 import SidebarLayout from "../../components/layouts/SidebarLayout";
 import AgreementList from "../../components/agreements/AgreementList";
 import Link from "next/link";
 import Button from "../../components/common/Button";
+import { verifySession } from "../../utils/session";
 
 const AgreementsPage: NextPage<{
   agreements: Agreement[];
 }> = ({ agreements }) => {
-  console.log(agreements);
   return (
     <SidebarLayout>
       <h2 className="mb-2 text-2xl">Agreements</h2>
@@ -28,12 +28,14 @@ const AgreementsPage: NextPage<{
 };
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const session = await getSession(req, res);
+  const { publicKey } = verifySession(req, res);
   const client = new PrismaClient();
 
-  if (!session) {
+  if (!publicKey) {
     return {
-      props: {},
+      props: {
+        agreements: [],
+      },
     };
   }
 
@@ -44,12 +46,13 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
           select: {
             id: true,
             network: true,
+            identifier: true,
             cid: true,
             description_cid: true,
             description: true,
             createdAt: true,
           },
-          where: { originatorId: session.user.id },
+          where: { ownerAddress: publicKey },
         })
       ).map((agreement) => ({
         ...agreement,
@@ -59,4 +62,4 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   };
 };
 
-export default withPageAuthRequired(AgreementsPage);
+export default AgreementsPage;
