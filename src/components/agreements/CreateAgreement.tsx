@@ -389,7 +389,27 @@ const CreateAgreement = () => {
       tx.add(signer);
     }
 
-    await provider.sendAndConfirm(tx);
+    // const providerRes = await provider.sendAndConfirm(tx);
+    // console.log("providerRes", providerRes);
+    // const updateRes = await fetch("/api/agreements/patch", {
+    //   method: "PATCH",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     transactionHash: "x",
+    //     id: agreement.id
+    //   }),
+    //   credentials: "include",
+    // });
+    // console.log(await updateRes.json());
+
+    // if (!res.ok) {
+    //   // TODO handle error with toast?
+    // }
+
+
+
   };
 
   const handleNewField = async ({

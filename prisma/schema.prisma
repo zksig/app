@@ -43,6 +43,7 @@ model Agreement {
 
   updatedAt           DateTime    @updatedAt
   createdAt           DateTime    @default(now())
+  transactionHash     String?
 }
 
 model Signature {
