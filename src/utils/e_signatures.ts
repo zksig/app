@@ -67,6 +67,52 @@ export type ESignature = {
       ];
     },
     {
+      name: "createSignatureConstraint";
+      accounts: [
+        {
+          name: "constraint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "agreement";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "profile";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "owner";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "index";
+          type: "u8";
+        },
+        {
+          name: "identifier";
+          type: "string";
+        },
+        {
+          name: "signer";
+          type: {
+            option: "publicKey";
+          };
+        }
+      ];
+    },
+    {
       name: "approveAgreement";
       accounts: [
         {
@@ -109,87 +155,6 @@ export type ESignature = {
       args: [];
     },
     {
-      name: "createSignaturePacket";
-      accounts: [
-        {
-          name: "packet";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "signerProfile";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "ownerProfile";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "agreement";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "owner";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "identifier";
-          type: "string";
-        },
-        {
-          name: "signer";
-          type: "publicKey";
-        }
-      ];
-    },
-    {
-      name: "setupAndSignSignaturePacket";
-      accounts: [
-        {
-          name: "packet";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "profile";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "agreement";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "signer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "identifier";
-          type: "string";
-        }
-      ];
-    },
-    {
       name: "signSignaturePacket";
       accounts: [
         {
@@ -203,6 +168,11 @@ export type ESignature = {
           isSigner: false;
         },
         {
+          name: "constraint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "agreement";
           isMut: true;
           isSigner: false;
@@ -211,12 +181,17 @@ export type ESignature = {
           name: "signer";
           isMut: true;
           isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [
         {
-          name: "identifier";
-          type: "string";
+          name: "index";
+          type: "u8";
         }
       ];
     }
@@ -270,8 +245,8 @@ export type ESignature = {
             type: "publicKey";
           },
           {
-            name: "identifier";
-            type: "string";
+            name: "index";
+            type: "u8";
           },
           {
             name: "signer";
@@ -317,6 +292,40 @@ export type ESignature = {
           }
         ];
       };
+    },
+    {
+      name: "signatureConstraint";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "agreement";
+            type: "publicKey";
+          },
+          {
+            name: "index";
+            type: "u8";
+          },
+          {
+            name: "identifier";
+            type: "string";
+          },
+          {
+            name: "signer";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "used";
+            type: "bool";
+          },
+          {
+            name: "bump";
+            type: "u8";
+          }
+        ];
+      };
     }
   ];
   types: [
@@ -353,6 +362,10 @@ export type ESignature = {
     {
       code: 6002;
       name: "MismatchedSigner";
+    },
+    {
+      code: 6003;
+      name: "UsedConstraint";
     }
   ];
 };
@@ -426,6 +439,52 @@ export const IDL: ESignature = {
       ],
     },
     {
+      name: "createSignatureConstraint",
+      accounts: [
+        {
+          name: "constraint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "agreement",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "profile",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "owner",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "index",
+          type: "u8",
+        },
+        {
+          name: "identifier",
+          type: "string",
+        },
+        {
+          name: "signer",
+          type: {
+            option: "publicKey",
+          },
+        },
+      ],
+    },
+    {
       name: "approveAgreement",
       accounts: [
         {
@@ -468,87 +527,6 @@ export const IDL: ESignature = {
       args: [],
     },
     {
-      name: "createSignaturePacket",
-      accounts: [
-        {
-          name: "packet",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "signerProfile",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "ownerProfile",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "agreement",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "owner",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "identifier",
-          type: "string",
-        },
-        {
-          name: "signer",
-          type: "publicKey",
-        },
-      ],
-    },
-    {
-      name: "setupAndSignSignaturePacket",
-      accounts: [
-        {
-          name: "packet",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "profile",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "agreement",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "signer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "identifier",
-          type: "string",
-        },
-      ],
-    },
-    {
       name: "signSignaturePacket",
       accounts: [
         {
@@ -562,6 +540,11 @@ export const IDL: ESignature = {
           isSigner: false,
         },
         {
+          name: "constraint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "agreement",
           isMut: true,
           isSigner: false,
@@ -571,11 +554,16 @@ export const IDL: ESignature = {
           isMut: true,
           isSigner: true,
         },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
       ],
       args: [
         {
-          name: "identifier",
-          type: "string",
+          name: "index",
+          type: "u8",
         },
       ],
     },
@@ -629,8 +617,8 @@ export const IDL: ESignature = {
             type: "publicKey",
           },
           {
-            name: "identifier",
-            type: "string",
+            name: "index",
+            type: "u8",
           },
           {
             name: "signer",
@@ -677,6 +665,40 @@ export const IDL: ESignature = {
         ],
       },
     },
+    {
+      name: "signatureConstraint",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "agreement",
+            type: "publicKey",
+          },
+          {
+            name: "index",
+            type: "u8",
+          },
+          {
+            name: "identifier",
+            type: "string",
+          },
+          {
+            name: "signer",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "used",
+            type: "bool",
+          },
+          {
+            name: "bump",
+            type: "u8",
+          },
+        ],
+      },
+    },
   ],
   types: [
     {
@@ -712,6 +734,10 @@ export const IDL: ESignature = {
     {
       code: 6002,
       name: "MismatchedSigner",
+    },
+    {
+      code: 6003,
+      name: "UsedConstraint",
     },
   ],
 };

@@ -5,23 +5,25 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
 import SidebarLayout from "../components/layouts/SidebarLayout";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { IDL } from "../utils/e_signatures";
+import Button from "../components/common/Button";
+import {
+  createSolanaProfile,
+  getSolanaProfile,
+  SolanaProfile,
+} from "../services/solana";
 
-const SolanaContext = createContext<{
-  program: Program<typeof IDL> | null;
-  provider: AnchorProvider | null;
-}>({
-  program: null,
-  provider: null,
+type SolanaContext = {
+  profile: SolanaProfile | undefined;
+};
+
+const SolanaContext = createContext<SolanaContext>({
+  profile: undefined,
 });
-
-const programId = new PublicKey("FqUDkQ5xq2XE7BecTN8u9R28xtLudP7FgCTC8vSLDEwL");
 
 const verifyToken = async (publicKey: PublicKey) => {
   const res = await fetch("/api/auth/solana");
@@ -58,35 +60,51 @@ const getToken = async (
 };
 
 export const SolanaProvider = ({ children }: { children: ReactNode }) => {
-  const { connection } = useConnection();
-  const { publicKey, wallet, signMessage, connected } = useWallet();
+  const { publicKey, signMessage } = useWallet();
   const [loading, setLoading] = useState(true);
   const [verified, setVerified] = useState(false);
-  const provider = new AnchorProvider(
-    connection,
-    // @ts-ignore
-    { ...wallet?.adapter, publicKey },
-    {}
-  );
-  const program = new Program(IDL, programId, provider);
+  const [profile, setProfile] = useState<SolanaProfile>();
 
   useEffect(() => {
-    if (!connected || !signMessage || !publicKey) return;
+    if (!signMessage || !publicKey) return;
     (async () => {
       try {
         if (!(await verifyToken(publicKey)))
           await getToken(signMessage, publicKey);
         setVerified(true);
-      } catch {
+        setProfile(await getSolanaProfile());
+      } catch (e) {
         toast.error("Unable to verify public key");
       } finally {
         setLoading(false);
       }
     })();
-  }, [connected, signMessage, publicKey]);
+  }, [signMessage, publicKey]);
+
+  if (!loading && !profile) {
+    return (
+      <SidebarLayout>
+        <Button
+          text="Create Account"
+          onClick={async () => {
+            try {
+              await createSolanaProfile();
+              setProfile(await getSolanaProfile());
+            } catch (e: any) {
+              toast.error(e);
+            }
+          }}
+        />
+      </SidebarLayout>
+    );
+  }
 
   return (
-    <SolanaContext.Provider value={{ program, provider }}>
+    <SolanaContext.Provider
+      value={{
+        profile,
+      }}
+    >
       {verified ? (
         children
       ) : (

@@ -1,7 +1,13 @@
-import { Agreement } from "@prisma/client";
 import Link from "next/link";
-import moment from "moment";
 import Badge from "../common/Badge";
+import { Agreement } from "../../services/solana";
+
+const colorByStatus = {
+  pending: "bg-yellow-500",
+  complete: "bg-indigo-500",
+  approved: "bg-teal-500",
+  rejected: "bg-rose-500",
+};
 
 export default function AgreementList({
   agreements,
@@ -9,24 +15,39 @@ export default function AgreementList({
   agreements: Agreement[];
 }) {
   const agreementsDisplay = agreements.map((agreement) => (
-    <li key={agreement.id}>
-      <Link href={`/agreements/${agreement.id}`}>
+    <li key={agreement.address.toString()}>
+      <Link href={`/agreements/${agreement.address}`}>
         <a
-          className="m-2 flex items-center gap-2 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
+          className="m-2 flex items-center gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
           href="#"
         >
-          <section className="basis-1/2">
+          <section className="basis-2/5">
             <p className="font-semibold">{agreement.identifier}</p>
             <p>{agreement.cid}</p>
             <Badge
-              className="w-36 bg-slate-900"
-              text={moment(agreement.createdAt).fromNow()}
+              className="w-36"
+              color={colorByStatus[agreement.status]}
+              text={agreement.status}
             />
           </section>
-          <section className="flex grow basis-1/5 flex-wrap justify-start gap-1">
-            {Object.keys(agreement.description || {}).map((key) => (
-              <Badge text={key} key={key} />
-            ))}
+          <section className="flex grow">
+            <div className="mb-4 h-1.5 w-full rounded-full bg-slate-600">
+              <div
+                className="h-1.5 rounded-full bg-teal-500"
+                style={{
+                  width: `${
+                    (agreement.signedPackets / agreement.totalPackets) * 100
+                  }%`,
+                }}
+              ></div>
+              <div className="mt-2 text-center font-medium">
+                {(
+                  (agreement.signedPackets / agreement.totalPackets) *
+                  100
+                ).toFixed(0)}
+                % signed
+              </div>
+            </div>
           </section>
           <section>
             <svg

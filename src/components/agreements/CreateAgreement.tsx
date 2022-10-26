@@ -2,15 +2,12 @@ import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
-import * as anchor from "@project-serum/anchor";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Button from "../common/Button";
 import { useIPFS } from "../../providers/IPFSProvider";
-import { PublicKey } from "@solana/web3.js";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { web3 } from "@project-serum/anchor";
 import { toast } from "react-toastify";
-import { useSolana } from "../../providers/SolanaProvider";
+import { createAgreement } from "../../services/solana";
+import { useRouter } from "next/router";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -300,15 +297,16 @@ const AddSignatures = ({
 };
 
 const CreateAgreement = () => {
+  const router = useRouter();
   const ipfs = useIPFS();
-  const { program, provider } = useSolana();
+  const [identifier, setIdentifier] = useState("");
   const [pdf, setPdf] = useState<Buffer | null>(null);
   const [pdfDescription, setPdfDescription] = useState<
-    Record<string, string[]>
-  >({});
+    { identifier: string; fields: string[] }[]
+  >([]);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf || !program || !provider) return;
+    if (!ipfs || !pdf) return;
 
     try {
       const [pdfIPFS, descriptionIPFS] = await Promise.all([
@@ -316,47 +314,16 @@ const CreateAgreement = () => {
         ipfs.add(JSON.stringify(pdfDescription)),
       ]);
 
-      const res = await fetch("/api/agreements", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          identifier: "",
-          cid: pdfIPFS.cid.toV1().toString(),
-          description_cid: descriptionIPFS.cid.toV1().toString(),
-          description: pdfDescription,
-        }),
-        credentials: "include",
+      const agreementAddress = await createAgreement({
+        identifier,
+        cid: pdfIPFS.cid.toV1().toString(),
+        descriptionCid: descriptionIPFS.cid.toV1().toString(),
+        description: pdfDescription,
       });
 
-      if (!res.ok) {
-        throw new Error("HTTP create agreement failed");
-      }
-
-      const agreement = await res.json();
-
-      const [agreementFromKey] = await PublicKey.findProgramAddress(
-        [
-          anchor.utils.bytes.utf8.encode("agreement"),
-          anchor.utils.bytes.utf8.encode(agreement.id),
-          provider.wallet.publicKey.toBuffer(),
-        ],
-        program.programId
-      );
-      await program.methods
-        .createAgreement(
-          agreement.id,
-          pdfIPFS.cid.toV1().toString(),
-          descriptionIPFS.cid.toV1().toString(),
-          Object.keys(pdfDescription).length
-        )
-        .accounts({
-          agreement: agreementFromKey,
-          originator: provider.wallet.publicKey,
-        })
-        .rpc();
-    } catch {
+      router.push(`/agreements/${agreementAddress}`);
+    } catch (e) {
+      console.log(e);
       toast.error("Unable to create agreement");
     }
   };
@@ -386,35 +353,40 @@ const CreateAgreement = () => {
     });
 
     setPdfDescription((pdfDescription) => {
-      const copy = { ...pdfDescription };
+      const index = pdfDescription.findIndex(
+        (signer) => signer.identifier === identifier
+      );
+      if (index < 0) {
+        return [...pdfDescription, { identifier, fields: [fieldName] }];
+      }
 
-      let fields = copy[identifier];
-      if (!fields) fields = [];
+      return pdfDescription.map((signer) => {
+        if (signer.identifier !== identifier) return signer;
 
-      copy[identifier] = [...fields, fieldName];
-
-      return copy;
+        return { ...signer, fields: [...signer.fields, fieldName] };
+      });
     });
 
     setPdf(Buffer.from(await doc.save()));
   };
 
   const handleAddSigner = (text?: string) => {
-    setPdfDescription((pdfDescription) => ({
+    setPdfDescription((pdfDescription) => [
       ...pdfDescription,
-      [text || `New Signer ${Object.keys(pdfDescription).length}`]: [],
-    }));
+      {
+        identifier: text || `New Signer ${pdfDescription.length}`,
+        fields: [],
+      },
+    ]);
   };
 
   const handleUpdateSigner =
     (oldIdentifier: string) => (newIdentifier: string) => {
       setPdfDescription((pdfDescription) => {
-        return Object.fromEntries(
-          Object.entries(pdfDescription).map(([identifier, fields]) => {
-            if (identifier === oldIdentifier) return [newIdentifier, fields];
-            else return [identifier, fields];
-          })
-        );
+        return pdfDescription.map((signer) => {
+          if (signer.identifier !== oldIdentifier) return signer;
+          return { ...signer, identifier: newIdentifier };
+        });
       });
     };
 
@@ -425,6 +397,20 @@ const CreateAgreement = () => {
   return (
     <div>
       <h1 className="mb-8 text-4xl">Create New Agreement</h1>
+      <div className="col-span-6 sm:col-span-3">
+        <label
+          htmlFor="first-name"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Agreement Identifier
+        </label>
+        <input
+          type="text"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          value={identifier}
+          onChange={({ target }) => setIdentifier(target.value)}
+        />
+      </div>
       <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
       <Button
         className="m-auto bg-fuchsia-500 hover:bg-fuchsia-400"
@@ -449,7 +435,7 @@ const CreateAgreement = () => {
       />
       <AddSignatures
         pdf={pdf}
-        signers={Object.keys(pdfDescription)}
+        signers={pdfDescription.map((signer) => signer.identifier)}
         onAddSigner={handleAddSigner}
         onUpdateSigner={handleUpdateSigner}
         onAddField={handleNewField}

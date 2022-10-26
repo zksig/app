@@ -1,4 +1,3 @@
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import type { NextPage } from "next";
 import CreateAgreement from "../../components/agreements/CreateAgreement";
 import SidebarLayout from "../../components/layouts/SidebarLayout";
@@ -11,4 +10,4 @@ const CreateAgreementPage: NextPage = () => {
   );
 };
 
-export default withPageAuthRequired(CreateAgreementPage);
+export default CreateAgreementPage;
