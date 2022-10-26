@@ -9,7 +9,7 @@ import {
 } from "../../../services/solana";
 import { PublicKey } from "@solana/web3.js";
 
-const CreateAgreementPage: NextPage = () => {
+const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();
   const [agreement, setAgreement] = useState<AgreementWithSignatures>();
 
@@ -21,13 +21,11 @@ const CreateAgreementPage: NextPage = () => {
     })();
   }, [router]);
 
-  if (!agreement) return null;
-
   return (
     <SidebarLayout>
-      <AgreementDetails agreement={agreement} />
+      {agreement ? <AgreementDetails agreement={agreement} /> : null}
     </SidebarLayout>
   );
 };
 
-export default CreateAgreementPage;
+export default AgreementDetailsPage;

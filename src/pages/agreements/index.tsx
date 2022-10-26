@@ -21,7 +21,8 @@ const AgreementsPage: NextPage = () => {
       <Link href="/agreements/create">
         <div className="flex justify-end">
           <Button
-            className="bg-fuchsia-500 hover:bg-fuchsia-400"
+            color="bg-fuchsia-500"
+            hoverColor="bg-fuchsia-400"
             text="Create Agreement"
             iconName="add"
           />

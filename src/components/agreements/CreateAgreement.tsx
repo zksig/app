@@ -413,7 +413,9 @@ const CreateAgreement = () => {
       </div>
       <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
       <Button
-        className="m-auto bg-fuchsia-500 hover:bg-fuchsia-400"
+        className="m-auto"
+        color="bg-fuchsia-500"
+        hoverColor="bg-fuchsia-400"
         icon={
           <svg
             xmlns="http://www.w3.org/2000/svg"

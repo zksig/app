@@ -37,6 +37,7 @@ export type SignatureConstraint = {
 export type SignaturePacket = {
   address: PublicKey;
   agreement: PublicKey;
+  identifier: string;
   index: number;
   signer: PublicKey;
   signed: boolean;
@@ -275,6 +276,7 @@ export const signAgreement = async ({
 };
 
 export const getSignatures = async () => {
+  const provider = getProvider();
   const program = getProgram();
 
   const profile = await getSolanaProfile();
@@ -285,7 +287,7 @@ export const getSignatures = async () => {
         [
           utils.bytes.utf8.encode("packet"),
           utils.bytes.utf8.encode(i.toString()),
-          profile.address.toBuffer(),
+          provider.wallet.publicKey.toBuffer(),
         ],
         program.programId
       );
@@ -296,6 +298,8 @@ export const getSignatures = async () => {
   const signatures = (await program.account.eSignaturePacket.fetchMultiple(
     addresses
   )) as SignaturePacket[];
+
+  console.log(signatures);
 
   return signatures.map((signature, i) => ({
     ...signature,

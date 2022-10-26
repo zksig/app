@@ -11,7 +11,7 @@ import {
 import Sign from "../../../../components/agreements/Sign";
 import { toast } from "react-toastify";
 
-const CreateAgreementPage: NextPage = () => {
+const SignAgreementPage: NextPage = () => {
   const router = useRouter();
   const [agreement, setAgreement] = useState<AgreementWithSignatures>();
 
@@ -42,4 +42,4 @@ const CreateAgreementPage: NextPage = () => {
   );
 };
 
-export default CreateAgreementPage;
+export default SignAgreementPage;
