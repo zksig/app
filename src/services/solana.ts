@@ -34,6 +34,14 @@ export type SignatureConstraint = {
   used: boolean;
 };
 
+export type SignaturePacket = {
+  address: PublicKey;
+  agreement: PublicKey;
+  index: number;
+  signer: PublicKey;
+  signed: boolean;
+};
+
 const programId = new PublicKey("FqUDkQ5xq2XE7BecTN8u9R28xtLudP7FgCTC8vSLDEwL");
 
 const connection = new Connection(
@@ -264,4 +272,33 @@ export const signAgreement = async ({
       signer: provider.wallet.publicKey,
     })
     .rpc();
+};
+
+export const getSignatures = async () => {
+  const program = getProgram();
+
+  const profile = await getSolanaProfile();
+
+  const addresses = await Promise.all(
+    [...Array(profile.signaturesCount)].map(async (_, i) => {
+      const [address] = await PublicKey.findProgramAddress(
+        [
+          utils.bytes.utf8.encode("packet"),
+          utils.bytes.utf8.encode(i.toString()),
+          profile.address.toBuffer(),
+        ],
+        program.programId
+      );
+      return address;
+    })
+  );
+
+  const signatures = (await program.account.eSignaturePacket.fetchMultiple(
+    addresses
+  )) as SignaturePacket[];
+
+  return signatures.map((signature, i) => ({
+    ...signature,
+    address: addresses[i],
+  }));
 };
