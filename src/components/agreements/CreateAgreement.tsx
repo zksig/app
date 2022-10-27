@@ -3,11 +3,13 @@ import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import Button from "../common/Button";
-import { useIPFS } from "../../providers/IPFSProvider";
+import nacl from "tweetnacl";
 import { toast } from "react-toastify";
-import { createAgreement } from "../../services/solana";
 import { useRouter } from "next/router";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useIPFS } from "../../providers/IPFSProvider";
+import { createAgreement, getAgreementAddress } from "../../services/solana";
+import Button from "../common/Button";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -299,6 +301,7 @@ const AddSignatures = ({
 const CreateAgreement = () => {
   const router = useRouter();
   const ipfs = useIPFS();
+  const { signMessage } = useWallet();
   const [identifier, setIdentifier] = useState("");
   const [pdf, setPdf] = useState<Buffer | null>(null);
   const [pdfDescription, setPdfDescription] = useState<
@@ -306,17 +309,28 @@ const CreateAgreement = () => {
   >([]);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf) return;
+    if (!ipfs || !pdf || !signMessage) return;
 
     try {
-      const [pdfIPFS, descriptionIPFS] = await Promise.all([
+      const agreementAddress = await getAgreementAddress();
+      const signature = await signMessage(
+        Buffer.from(`Encrypt PDF for ${agreementAddress}`)
+      );
+      const encrypted = nacl.secretbox(
+        pdf,
+        new Uint8Array(24),
+        signature.slice(0, 32)
+      );
+      const [pdfIPFS, encryptedIPFS, descriptionIPFS] = await Promise.all([
         ipfs.add(pdf),
+        ipfs.add(encrypted),
         ipfs.add(JSON.stringify(pdfDescription)),
       ]);
 
-      const agreementAddress = await createAgreement({
+      await createAgreement({
         identifier,
         cid: pdfIPFS.cid.toV1().toString(),
+        encryptedCid: encryptedIPFS.cid.toV1().toString(),
         descriptionCid: descriptionIPFS.cid.toV1().toString(),
         description: pdfDescription,
       });

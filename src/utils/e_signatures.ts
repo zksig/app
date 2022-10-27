@@ -57,6 +57,10 @@ export type ESignature = {
           type: "string";
         },
         {
+          name: "encryptedCid";
+          type: "string";
+        },
+        {
           name: "descriptionCid";
           type: "string";
         },
@@ -192,6 +196,10 @@ export type ESignature = {
         {
           name: "index";
           type: "u8";
+        },
+        {
+          name: "encryptedCid";
+          type: "string";
         }
       ];
     }
@@ -215,6 +223,10 @@ export type ESignature = {
             type: "string";
           },
           {
+            name: "encryptedCid";
+            type: "string";
+          },
+          {
             name: "descriptionCid";
             type: "string";
           },
@@ -231,6 +243,12 @@ export type ESignature = {
           {
             name: "totalPackets";
             type: "u8";
+          },
+          {
+            name: "reserved";
+            type: {
+              array: ["u8", 128];
+            };
           }
         ];
       };
@@ -249,6 +267,10 @@ export type ESignature = {
             type: "u8";
           },
           {
+            name: "encryptedCid";
+            type: "string";
+          },
+          {
             name: "signer";
             type: "publicKey";
           },
@@ -259,6 +281,12 @@ export type ESignature = {
           {
             name: "bump";
             type: "u8";
+          },
+          {
+            name: "reserved";
+            type: {
+              array: ["u8", 128];
+            };
           }
         ];
       };
@@ -323,6 +351,12 @@ export type ESignature = {
           {
             name: "bump";
             type: "u8";
+          },
+          {
+            name: "reserved";
+            type: {
+              array: ["u8", 64];
+            };
           }
         ];
       };
@@ -426,6 +460,10 @@ export const IDL: ESignature = {
         },
         {
           name: "cid",
+          type: "string",
+        },
+        {
+          name: "encryptedCid",
           type: "string",
         },
         {
@@ -565,6 +603,10 @@ export const IDL: ESignature = {
           name: "index",
           type: "u8",
         },
+        {
+          name: "encryptedCid",
+          type: "string",
+        },
       ],
     },
   ],
@@ -587,6 +629,10 @@ export const IDL: ESignature = {
             type: "string",
           },
           {
+            name: "encryptedCid",
+            type: "string",
+          },
+          {
             name: "descriptionCid",
             type: "string",
           },
@@ -603,6 +649,12 @@ export const IDL: ESignature = {
           {
             name: "totalPackets",
             type: "u8",
+          },
+          {
+            name: "reserved",
+            type: {
+              array: ["u8", 128],
+            },
           },
         ],
       },
@@ -621,6 +673,10 @@ export const IDL: ESignature = {
             type: "u8",
           },
           {
+            name: "encryptedCid",
+            type: "string",
+          },
+          {
             name: "signer",
             type: "publicKey",
           },
@@ -631,6 +687,12 @@ export const IDL: ESignature = {
           {
             name: "bump",
             type: "u8",
+          },
+          {
+            name: "reserved",
+            type: {
+              array: ["u8", 128],
+            },
           },
         ],
       },
@@ -695,6 +757,12 @@ export const IDL: ESignature = {
           {
             name: "bump",
             type: "u8",
+          },
+          {
+            name: "reserved",
+            type: {
+              array: ["u8", 64],
+            },
           },
         ],
       },

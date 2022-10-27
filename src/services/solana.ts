@@ -98,14 +98,36 @@ export const getSolanaProfile = async (): Promise<SolanaProfile> => {
   };
 };
 
+export const getAgreementAddress = async (options?: {
+  profile?: SolanaProfile;
+  index?: number;
+}) => {
+  const program = getProgram();
+  const profile = options?.profile || (await getSolanaProfile());
+  const [address] = await PublicKey.findProgramAddress(
+    [
+      utils.bytes.utf8.encode("agreement"),
+      utils.bytes.utf8.encode(
+        (options?.index || profile.agreementCount).toString()
+      ),
+      profile.address.toBuffer(),
+    ],
+    program.programId
+  );
+
+  return address;
+};
+
 export const createAgreement = async ({
   identifier,
   cid,
+  encryptedCid,
   descriptionCid,
   description,
 }: {
   identifier: string;
   cid: string;
+  encryptedCid: string;
   descriptionCid: string;
   description: { identifier: string; fields: string[] }[];
 }) => {
@@ -114,20 +136,22 @@ export const createAgreement = async ({
 
   const profile = await getSolanaProfile();
 
-  const [agreementAddress] = await PublicKey.findProgramAddress(
-    [
-      utils.bytes.utf8.encode("agreement"),
-      utils.bytes.utf8.encode(profile.agreementCount.toString()),
-      profile.address.toBuffer(),
-    ],
-    program.programId
-  );
+  const agreementAddress = await getAgreementAddress({
+    profile,
+    index: profile.agreementCount,
+  });
 
   const tx = new Transaction();
 
   tx.add(
     await program.methods
-      .createAgreement(identifier, cid, descriptionCid, description.length)
+      .createAgreement(
+        identifier,
+        cid,
+        encryptedCid,
+        descriptionCid,
+        description.length
+      )
       .accounts({
         agreement: agreementAddress,
         profile: profile.address,
@@ -172,16 +196,8 @@ export const getAgreements = async (): Promise<Agreement[]> => {
   const profile = await getSolanaProfile();
 
   const addresses = await Promise.all(
-    [...Array(profile.agreementCount)].map(async (_, i) => {
-      const [address] = await PublicKey.findProgramAddress(
-        [
-          utils.bytes.utf8.encode("agreement"),
-          utils.bytes.utf8.encode(i.toString()),
-          profile.address.toBuffer(),
-        ],
-        program.programId
-      );
-      return address;
+    [...Array(profile.agreementCount)].map((_, i) => {
+      return getAgreementAddress({ index: i });
     })
   );
 
