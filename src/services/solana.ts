@@ -113,7 +113,7 @@ export const getAgreementAddress = async (options?: {
     [
       utils.bytes.utf8.encode("agreement"),
       utils.bytes.utf8.encode(
-        (options?.index || profile.agreementCount).toString()
+        (options?.index ?? profile.agreementCount).toString()
       ),
       profile.address.toBuffer(),
     ],
