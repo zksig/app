@@ -1,14 +1,53 @@
 import type { AgreementWithSignatures } from "../../services/solana";
+import { useEffect, useState } from "react";
+import nacl from "tweetnacl";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "react-toastify";
+import { useIPFS } from "../../providers/IPFSProvider";
 import Badge from "../common/Badge";
 import { colorByStatus } from "../../utils/ui";
 import Button from "../common/Button";
-import { toast } from "react-toastify";
+import { useCallback } from "react";
+import { downloadAndDecrypt } from "../../utils/files";
 
 export default function AgreementDetails({
   agreement,
 }: {
   agreement: AgreementWithSignatures;
 }) {
+  const ipfs = useIPFS();
+  const { signMessage } = useWallet();
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
+
+  const getEncyptionPWBytes = useCallback(async () => {
+    if (!signMessage) throw new Error("Wallet not connected");
+
+    const encryptionPWBytes = await signMessage(
+      Buffer.from(`Encrypt PDF for ${agreement.address}`)
+    );
+    setEncryptionPWBytes(encryptionPWBytes);
+
+    return encryptionPWBytes;
+  }, [signMessage, agreement]);
+
+  const handleDecryptPdf = useCallback(async () => {
+    try {
+      if (!ipfs) throw new Error("IPFS not ready");
+
+      const pdf = await downloadAndDecrypt({
+        encryptionPWBytes: encryptionPWBytes || (await getEncyptionPWBytes()),
+        cid: agreement.encryptedCid,
+      });
+
+      setPdfUrl(
+        `data:application/pdf;base64,${Buffer.from(pdf!).toString("base64")}`
+      );
+    } catch (e: any) {
+      toast.error(`Unable to decrypt agreement: ${e.message}`);
+    }
+  }, [ipfs, agreement, getEncyptionPWBytes]);
+
   const signaturesDisplay = agreement.signatures.map((signature) => (
     <li key={signature.address.toString()}>
       <div className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50">
@@ -22,35 +61,64 @@ export default function AgreementDetails({
           />
         </section>
         <section className="">
-          <Button
-            text="Copy Link"
-            onClick={() => {
-              window.navigator.clipboard.writeText(
-                `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.address}/sign/${signature.index}`
-              );
-              toast.info("Link copied to clipboard");
-            }}
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"
-                />
-              </svg>
-            }
-          />
+          {encryptionPWBytes ? (
+            <Button
+              text="Copy Link"
+              color="bg-teal-500"
+              hoverColor="bg-teal-400"
+              onClick={async () => {
+                const pw = encodeURIComponent(
+                  Buffer.from(encryptionPWBytes!).toString("base64")
+                );
+                await window.navigator.clipboard.writeText(
+                  `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.address}/sign/${signature.index}?pw=${pw}`
+                );
+                toast.info("Link copied to clipboard");
+              }}
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-6 w-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"
+                  />
+                </svg>
+              }
+            />
+          ) : (
+            <Button
+              text="Create Link"
+              onClick={getEncyptionPWBytes}
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-6 w-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"
+                  />
+                </svg>
+              }
+            />
+          )}
         </section>
       </div>
     </li>
   ));
+
   return (
     <section>
       <div className="flex items-center gap-2">
@@ -80,6 +148,27 @@ export default function AgreementDetails({
         </div>
       </div>
       <ul>{signaturesDisplay}</ul>
+      <Button
+        text="Decrypt Agreement"
+        icon={
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+            />
+          </svg>
+        }
+        onClick={handleDecryptPdf}
+      />
+      <iframe className="h-screen w-full" src={pdfUrl} />
     </section>
   );
 }

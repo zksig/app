@@ -2,7 +2,6 @@ import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AgreementDetails from "../../../components/agreements/AgreementDetails";
-import SidebarLayout from "../../../components/layouts/SidebarLayout";
 import {
   AgreementWithSignatures,
   getAgreement,
@@ -22,9 +21,9 @@ const AgreementDetailsPage: NextPage = () => {
   }, [router]);
 
   return (
-    <SidebarLayout>
+    <>
       {agreement ? <AgreementDetails agreement={agreement} /> : null}
-    </SidebarLayout>
+    </>
   );
 };
 

@@ -12,6 +12,7 @@ import { SolanaProvider } from "../providers/SolanaProvider";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/globals.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
+import SidebarLayout from "../components/layouts/SidebarLayout";
 
 const App: FC<AppProps> = ({ Component, pageProps }) => {
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
@@ -27,9 +28,11 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
         >
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
-              <SolanaProvider>
-                <Component {...pageProps} />
-              </SolanaProvider>
+              <SidebarLayout>
+                <SolanaProvider>
+                  <Component {...pageProps} />
+                </SolanaProvider>
+              </SidebarLayout>
             </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>

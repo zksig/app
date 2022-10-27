@@ -38,7 +38,7 @@ export default function Button({
 }) {
   return (
     <button
-      className={`my-4 flex w-48 justify-center gap-2 rounded p-2 text-white transition duration-200 ${className} ${color} hover:${hoverColor}`}
+      className={`my-4 flex w-48 items-center justify-center gap-2 rounded p-2 text-white transition duration-200 ${className} ${color} hover:${hoverColor}`}
       type="button"
       onClick={onClick}
     >

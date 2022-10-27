@@ -10,7 +10,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import { toast } from "react-toastify";
-import SidebarLayout from "../components/layouts/SidebarLayout";
 import Button from "../components/common/Button";
 import {
   createSolanaProfile,
@@ -90,30 +89,25 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
     })();
   }, [signMessage, publicKey, fetchProfile]);
 
-  if (!verified) {
-    return (
-      <SidebarLayout>
-        <WalletMultiButton />
-      </SidebarLayout>
-    );
+  if (!publicKey) {
+    return <WalletMultiButton />;
   }
+
+  if (loading) return null;
 
   if (!profile) {
     return (
-      <SidebarLayout>
-        <Button
-          text="Create Account"
-          onClick={async () => {
-            try {
-              await createSolanaProfile();
-              setProfile(await getSolanaProfile());
-            } catch (e: any) {
-              console.log("HIHIHI", e);
-              toast.error(e);
-            }
-          }}
-        />
-      </SidebarLayout>
+      <Button
+        text="Create Account"
+        onClick={async () => {
+          try {
+            await createSolanaProfile();
+            setProfile(await getSolanaProfile());
+          } catch (e: any) {
+            toast.error(e);
+          }
+        }}
+      />
     );
   }
 

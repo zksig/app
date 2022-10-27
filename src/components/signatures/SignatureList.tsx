@@ -14,7 +14,6 @@ export default function SignatureList({
 }: {
   signatures: SignaturePacket[];
 }) {
-  console.log(signatures);
   const signaturesDisplay = signatures.map((signature) => (
     <li key={signature.address.toString()}>
       <Link href={`/signatures/${signature.address}`}>

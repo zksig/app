@@ -3,13 +3,13 @@ import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import nacl from "tweetnacl";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useIPFS } from "../../providers/IPFSProvider";
 import { createAgreement, getAgreementAddress } from "../../services/solana";
 import Button from "../common/Button";
+import { encryptAgreementAndPin } from "../../utils/files";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -313,24 +313,23 @@ const CreateAgreement = () => {
 
     try {
       const agreementAddress = await getAgreementAddress();
-      const signature = await signMessage(
+      const encryptionPWBytes = await signMessage(
         Buffer.from(`Encrypt PDF for ${agreementAddress}`)
       );
-      const encrypted = nacl.secretbox(
+      const { cid: encryptedCid } = await encryptAgreementAndPin({
         pdf,
-        new Uint8Array(24),
-        signature.slice(0, 32)
-      );
-      const [pdfIPFS, encryptedIPFS, descriptionIPFS] = await Promise.all([
-        ipfs.add(pdf),
-        ipfs.add(encrypted),
-        ipfs.add(JSON.stringify(pdfDescription)),
+        name: agreementAddress.toString(),
+        encryptionPWBytes,
+      });
+      const [pdfIPFS, descriptionIPFS] = await Promise.all([
+        ipfs.add(pdf, { wrapWithDirectory: false }),
+        ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
       ]);
 
       await createAgreement({
         identifier,
         cid: pdfIPFS.cid.toV1().toString(),
-        encryptedCid: encryptedIPFS.cid.toV1().toString(),
+        encryptedCid,
         descriptionCid: descriptionIPFS.cid.toV1().toString(),
         description: pdfDescription,
       });

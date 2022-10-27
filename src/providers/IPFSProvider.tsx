@@ -9,8 +9,8 @@ import { create, IPFS } from "ipfs-core";
 
 const IPFSContext = createContext<IPFS | null>(null);
 
-const ipfsPromise = create({ offline: true, start: false }).then((ipfs) => {
-  if (window) ipfs.start();
+const ipfsPromise = create({ start: false }).then((ipfs) => {
+  if (typeof window !== "undefined") ipfs.start();
   return ipfs;
 });
 

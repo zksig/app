@@ -1,17 +1,50 @@
-import { AgreementWithSignatures, signAgreement } from "../../services/solana";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useIPFS } from "../../providers/IPFSProvider";
+import {
+  AgreementWithSignatures,
+  SignatureConstraint,
+} from "../../services/solana";
+import { downloadAndDecrypt } from "../../utils/files";
 import Badge from "../common/Badge";
 import Button from "../common/Button";
 
 export default function Sign({
   agreement,
-  index,
+  signature,
+  encryptionPW,
   onSign,
 }: {
   agreement: AgreementWithSignatures;
-  index: number;
-  onSign: (index: number) => void;
+  signature: SignatureConstraint;
+  encryptionPW: string;
+  onSign: () => void;
 }) {
-  const signature = agreement.signatures[index];
+  const ipfs = useIPFS();
+  const [pdfUrl, setPdfUrl] = useState("");
+
+  useEffect(() => {
+    if (!encryptionPW) return;
+    (async () => {
+      try {
+        if (!ipfs) throw new Error("IPFS not ready");
+
+        const pdf = await downloadAndDecrypt({
+          cid: agreement.encryptedCid,
+          encryptionPWBytes: new Uint8Array(
+            Buffer.from(encryptionPW, "base64")
+          ),
+        });
+
+        setPdfUrl(
+          `data:application/pdf;base64,${Buffer.from(pdf!).toString("base64")}`
+        );
+      } catch (e: any) {
+        console.log(e);
+        toast.error(`Unable to decrypt agreement: ${e.message}`);
+      }
+    })();
+  }, [ipfs, encryptionPW, agreement]);
 
   return (
     <section>
@@ -27,7 +60,7 @@ export default function Sign({
         {!signature.used ? (
           <Button
             text="Sign"
-            onClick={() => onSign(index)}
+            onClick={() => onSign()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -47,6 +80,7 @@ export default function Sign({
           />
         ) : null}
       </div>
+      <iframe className="h-screen w-full" src={pdfUrl} />
     </section>
   );
 }

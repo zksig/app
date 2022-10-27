@@ -1,13 +1,8 @@
 import type { NextPage } from "next";
 import CreateAgreement from "../../components/agreements/CreateAgreement";
-import SidebarLayout from "../../components/layouts/SidebarLayout";
 
 const CreateAgreementPage: NextPage = () => {
-  return (
-    <SidebarLayout>
-      <CreateAgreement />
-    </SidebarLayout>
-  );
+  return <CreateAgreement />;
 };
 
 export default CreateAgreementPage;

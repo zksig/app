@@ -1,11 +1,8 @@
-import type { GetServerSideProps, NextPage } from "next";
-import SidebarLayout from "../components/layouts/SidebarLayout";
+import type { NextPage } from "next";
 
 const Profile: NextPage = () => {
   return (
-    <SidebarLayout>
       <h1>Profile</h1>
-    </SidebarLayout>
   );
 };
 

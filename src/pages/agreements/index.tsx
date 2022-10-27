@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import SidebarLayout from "../../components/layouts/SidebarLayout";
 import AgreementList from "../../components/agreements/AgreementList";
 import Link from "next/link";
 import Button from "../../components/common/Button";
@@ -16,7 +15,7 @@ const AgreementsPage: NextPage = () => {
   }, []);
 
   return (
-    <SidebarLayout>
+    <>
       <h2 className="mb-2 text-2xl">Agreements</h2>
       <Link href="/agreements/create">
         <div className="flex justify-end">
@@ -29,7 +28,7 @@ const AgreementsPage: NextPage = () => {
         </div>
       </Link>
       <AgreementList agreements={agreements} />
-    </SidebarLayout>
+    </>
   );
 };
 

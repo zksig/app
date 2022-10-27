@@ -15,6 +15,7 @@ export type Agreement = {
   profile: PublicKey;
   identifier: string;
   cid: string;
+  encryptedCid: string;
   descriptionCid: string;
   status: AgreementStatus;
   signedPackets: number;
@@ -210,7 +211,7 @@ export const getAgreements = async (): Promise<Agreement[]> => {
 
   return agreements.map((agreement, i) => ({
     ...agreement,
-    status: Object.keys(agreement.status)[0] as AgreementStatus,
+    status: Object.keys(agreement?.status || {})[0] as AgreementStatus,
     address: addresses[i],
   }));
 };
@@ -253,9 +254,11 @@ export const getAgreement = async (
 
 export const signAgreement = async ({
   agreementAddress,
+  encryptedCid,
   index,
 }: {
   agreementAddress: PublicKey;
+  encryptedCid: string;
   index: number;
 }) => {
   const provider = getProvider();
@@ -283,7 +286,7 @@ export const signAgreement = async ({
   ]);
 
   await program.methods
-    .signSignaturePacket(index)
+    .signSignaturePacket(index, encryptedCid)
     .accounts({
       packet,
       constraint,
@@ -317,8 +320,6 @@ export const getSignatures = async () => {
   const signatures = (await program.account.eSignaturePacket.fetchMultiple(
     addresses
   )) as SignaturePacket[];
-
-  console.log(signatures);
 
   return signatures.map((signature, i) => ({
     ...signature,

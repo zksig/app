@@ -16,13 +16,10 @@ export default function AgreementList({
 }) {
   const agreementsDisplay = agreements.map((agreement) => (
     <li key={agreement.address.toString()}>
-      <Link
-        href={`/agreements/${agreement.address}`}
-        as={`/agreements/${agreement.address}`}
-      >
+      <Link href={`/agreements/${agreement.address}`}>
         <a
           className="m-2 flex items-center gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
-          href="#"
+          href={`/agreements/${agreement.address}`}
         >
           <section className="basis-2/5">
             <p className="font-semibold">{agreement.identifier}</p>
