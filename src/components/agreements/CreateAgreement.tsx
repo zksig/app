@@ -1,6 +1,6 @@
 import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFImage } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { toast } from "react-toastify";
@@ -23,7 +23,7 @@ const ConfigureAgreement = ({
   pdf,
   onChangePdf,
 }: {
-  pdf: Buffer | null;
+  pdf?: Uint8Array;
   onChangePdf: (file: File) => void;
 }) => (
   <div>
@@ -190,7 +190,7 @@ const Drop = ({
   onAddField,
   children,
 }: {
-  pdf: Buffer | null;
+  pdf?: Uint8Array;
   currentPage: number;
   canvas: RefObject<HTMLCanvasElement>;
   onAddField: (options: AddFieldOptions) => void;
@@ -223,7 +223,7 @@ const AddSignatures = ({
   onUpdateSigner,
   onAddField,
 }: {
-  pdf: Buffer | null;
+  pdf?: Uint8Array;
   signers: string[];
   onAddSigner: (identifier?: string) => void;
   onUpdateSigner: (oldIdentifier: string) => (newIdentifier: string) => void;
@@ -303,7 +303,7 @@ const CreateAgreement = () => {
   const ipfs = useIPFS();
   const { signMessage } = useWallet();
   const [identifier, setIdentifier] = useState("");
-  const [pdf, setPdf] = useState<Buffer | null>(null);
+  const [pdf, setPdf] = useState<Uint8Array>();
   const [pdfDescription, setPdfDescription] = useState<
     { identifier: string; fields: string[] }[]
   >([]);
@@ -380,7 +380,7 @@ const CreateAgreement = () => {
       });
     });
 
-    setPdf(Buffer.from(await doc.save()));
+    setPdf(await doc.save());
   };
 
   const handleAddSigner = (text?: string) => {
@@ -404,7 +404,7 @@ const CreateAgreement = () => {
     };
 
   const handleFile = async (file: File) => {
-    setPdf(Buffer.from(await file.arrayBuffer()));
+    setPdf(new Uint8Array(await file.arrayBuffer()));
   };
 
   return (

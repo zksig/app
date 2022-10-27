@@ -28,7 +28,7 @@ export const encryptAgreementAndPin = async ({
   name,
   encryptionPWBytes,
 }: {
-  pdf: Buffer;
+  pdf: Uint8Array;
   name: string;
   encryptionPWBytes: Uint8Array;
 }): Promise<{ cid: string }> => {

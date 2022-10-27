@@ -39,6 +39,7 @@ export type SignaturePacket = {
   address: PublicKey;
   agreement: PublicKey;
   identifier: string;
+  encryptedCid: string;
   index: number;
   signer: PublicKey;
   signed: boolean;
@@ -325,4 +326,22 @@ export const getSignatures = async () => {
     ...signature,
     address: addresses[i],
   }));
+};
+
+export const getSignature = async (
+  address: PublicKey
+): Promise<SignaturePacket> => {
+  const program = getProgram();
+
+  const signature = await program.account.eSignaturePacket.fetch(address);
+
+  return {
+    address,
+    agreement: signature.agreement,
+    identifier: signature.identifier,
+    encryptedCid: signature.encryptedCid,
+    index: signature.index,
+    signer: signature.signer!,
+    signed: signature.signed,
+  };
 };

@@ -267,6 +267,10 @@ export type ESignature = {
             type: "u8";
           },
           {
+            name: "identifier";
+            type: "string";
+          },
+          {
             name: "encryptedCid";
             type: "string";
           },
@@ -671,6 +675,10 @@ export const IDL: ESignature = {
           {
             name: "index",
             type: "u8",
+          },
+          {
+            name: "identifier",
+            type: "string",
           },
           {
             name: "encryptedCid",
