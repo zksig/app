@@ -9,13 +9,22 @@ import { create, IPFS } from "ipfs-core";
 
 const IPFSContext = createContext<IPFS | null>(null);
 
+const ipfsPromise = create({ offline: true, start: false }).then((ipfs) => {
+  if (window) ipfs.start();
+  return ipfs;
+});
+
 export const IPFSProvider = ({ children }: { children: ReactNode }) => {
   const [ipfs, setIpfs] = useState<IPFS | null>(null);
 
   useEffect(() => {
+    let ipfs: IPFS;
     (async () => {
-      setIpfs(await create({ offline: true }));
+      ipfs = await ipfsPromise;
+      setIpfs(ipfs);
     })();
+
+    return () => void ipfs?.stop();
   }, []);
 
   return <IPFSContext.Provider value={ipfs}>{children}</IPFSContext.Provider>;

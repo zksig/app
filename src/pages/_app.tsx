@@ -5,8 +5,7 @@ import {
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { UserProvider } from "@auth0/nextjs-auth0";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { ToastContainer } from "react-toastify";
 import { IPFSProvider } from "../providers/IPFSProvider";
 import { SolanaProvider } from "../providers/SolanaProvider";
@@ -18,7 +17,7 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
 
   return (
-    <UserProvider>
+    <>
       <IPFSProvider>
         <ConnectionProvider
           endpoint={
@@ -36,7 +35,7 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
         </ConnectionProvider>
       </IPFSProvider>
       <ToastContainer />
-    </UserProvider>
+    </>
   );
 };
 

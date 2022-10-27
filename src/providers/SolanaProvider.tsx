@@ -1,6 +1,7 @@
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -65,6 +66,14 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
   const [verified, setVerified] = useState(false);
   const [profile, setProfile] = useState<SolanaProfile>();
 
+  const fetchProfile = useCallback(async () => {
+    try {
+      return await getSolanaProfile();
+    } catch (e) {
+      return;
+    }
+  }, []);
+
   useEffect(() => {
     if (!signMessage || !publicKey) return;
     (async () => {
@@ -72,16 +81,24 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
         if (!(await verifyToken(publicKey)))
           await getToken(signMessage, publicKey);
         setVerified(true);
-        setProfile(await getSolanaProfile());
+        setProfile(await fetchProfile());
       } catch (e) {
         toast.error("Unable to verify public key");
       } finally {
         setLoading(false);
       }
     })();
-  }, [signMessage, publicKey]);
+  }, [signMessage, publicKey, fetchProfile]);
 
-  if (!loading && !profile) {
+  if (!verified) {
+    return (
+      <SidebarLayout>
+        <WalletMultiButton />
+      </SidebarLayout>
+    );
+  }
+
+  if (!profile) {
     return (
       <SidebarLayout>
         <Button
@@ -91,6 +108,7 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
               await createSolanaProfile();
               setProfile(await getSolanaProfile());
             } catch (e: any) {
+              console.log("HIHIHI", e);
               toast.error(e);
             }
           }}
@@ -105,13 +123,7 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
         profile,
       }}
     >
-      {verified ? (
-        children
-      ) : (
-        <SidebarLayout>
-          <WalletMultiButton />
-        </SidebarLayout>
-      )}
+      {children}
     </SolanaContext.Provider>
   );
 };

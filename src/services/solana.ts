@@ -43,7 +43,7 @@ export type SignaturePacket = {
   signed: boolean;
 };
 
-const programId = new PublicKey("FqUDkQ5xq2XE7BecTN8u9R28xtLudP7FgCTC8vSLDEwL");
+const programId = new PublicKey("EqsfiqKZqSVk6r8mMBSsad6hMaYxy1pLqkfG2w6St9Yf");
 
 const connection = new Connection(
   process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.devnet.solana.com",

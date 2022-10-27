@@ -1,8 +1,8 @@
 import React, { Fragment } from "react";
 import Image from "next/image";
 import { Menu, Transition } from "@headlessui/react";
-import { useUser } from "@auth0/nextjs-auth0";
 import Link from "next/link";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 const MobileHeader = () => {
   return (
@@ -253,9 +253,6 @@ export default function SidebarLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useUser();
-  if (isLoading) return null;
-
   return (
     <div className="md:flex">
       <div className="md:hidden">
@@ -266,14 +263,7 @@ export default function SidebarLayout({
       </div>
       <main className="w-full">
         <header className="flex h-16 w-full items-center justify-end bg-slate-900 p-4">
-          <img
-            className="inline-block h-8 w-8 rounded-full"
-            src={
-              user?.picture ||
-              `https://avatar.oxro.io/avatar.svg?name=${user?.name}&background=8b5cf6&length=2&rounded=100%`
-            }
-            alt=""
-          />
+          <WalletMultiButton />
         </header>
         <section className="p-4" style={{ height: "calc(100vh - 64px)" }}>
           <div className="h-full overflow-y-scroll rounded bg-white p-8">
