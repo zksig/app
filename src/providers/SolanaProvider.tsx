@@ -90,7 +90,7 @@ export const SolanaProvider = ({ children }: { children: ReactNode }) => {
   }, [signMessage, publicKey, fetchProfile]);
 
   if (!publicKey) {
-    return <WalletMultiButton />;
+    return <WalletMultiButton style={{ background: "#a855f7" }} />;
   }
 
   if (loading) return null;

@@ -263,7 +263,7 @@ export default function SidebarLayout({
       </div>
       <main className="w-full">
         <header className="flex h-16 w-full items-center justify-end bg-slate-900 p-4">
-          <WalletMultiButton />
+          <WalletMultiButton style={{ background: "#a855f7" }} />
         </header>
         <section className="p-4" style={{ height: "calc(100vh - 64px)" }}>
           <div className="h-full overflow-y-scroll rounded bg-white p-8">
