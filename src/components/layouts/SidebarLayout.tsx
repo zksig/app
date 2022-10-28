@@ -90,7 +90,7 @@ const MobileHeader = () => {
 
               <Menu.Item
                 as="a"
-                href="/profile"
+                href="/"
                 className="my-2 flex w-full gap-2 px-2 py-4"
               >
                 <svg
@@ -108,28 +108,6 @@ const MobileHeader = () => {
                   />
                 </svg>
                 Profile
-              </Menu.Item>
-
-              <Menu.Item
-                as="a"
-                href="#"
-                className="my-2 flex w-full gap-2 px-2 py-4"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                  />
-                </svg>
-                Settings
               </Menu.Item>
             </Menu.Items>
           </Transition>
@@ -154,10 +132,7 @@ const DesktopHeader = () => (
     </div>
     <nav className="p-2">
       <Link href="/agreements">
-        <a
-          href="#"
-          className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900"
-        >
+        <a className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -177,10 +152,7 @@ const DesktopHeader = () => (
       </Link>
 
       <Link href="/signatures">
-        <a
-          href="#"
-          className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900"
-        >
+        <a className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -199,11 +171,8 @@ const DesktopHeader = () => (
         </a>
       </Link>
 
-      <Link href="/profile">
-        <a
-          href="#"
-          className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900"
-        >
+      <Link href="/">
+        <a className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -219,29 +188,6 @@ const DesktopHeader = () => (
             />
           </svg>
           Profile
-        </a>
-      </Link>
-
-      <Link href="/settings">
-        <a
-          href="#"
-          className="my-2 flex w-full gap-2 rounded p-4 text-purple-100 hover:bg-purple-300 hover:text-slate-900"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-6 w-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-            />
-          </svg>
-          Settings
         </a>
       </Link>
     </nav>
