@@ -9,8 +9,12 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     (async () => {
-      setAgreementCount(await (await getAgreements()).length);
-      setSignatureCount(await (await getSignatures()).length);
+      const [agreements, signatures] = await Promise.all([
+        getAgreements(),
+        getSignatures(),
+      ]);
+      setAgreementCount(agreements.length);
+      setSignatureCount(signatures.length);
     })();
   }, []);
   return (

@@ -59,7 +59,7 @@ const getProvider = () => {
   return new AnchorProvider(
     connection,
     // @ts-ignore
-    window.solana,
+    typeof window !== "undefined" ? window.solana : {},
     {}
   );
 };
@@ -101,6 +101,11 @@ export const getSolanaProfile = async (): Promise<SolanaProfile> => {
     agreementCount: profileRes.agreementsCount,
     signaturesCount: profileRes.signaturesCount,
   };
+};
+
+export const getAllSolanaProfiles = () => {
+  const program = getProgram();
+  return program.account.profile.all();
 };
 
 export const getAgreementAddress = async (options?: {
@@ -215,6 +220,11 @@ export const getAgreements = async (): Promise<Agreement[]> => {
     status: Object.keys(agreement?.status || {})[0] as AgreementStatus,
     address: addresses[i],
   }));
+};
+
+export const getAllAgreements = () => {
+  const program = getProgram();
+  return program.account.agreement.all();
 };
 
 export const getAgreement = async (
@@ -344,4 +354,9 @@ export const getSignature = async (
     signer: signature.signer!,
     signed: signature.signed,
   };
+};
+
+export const getAllSignatures = () => {
+  const program = getProgram();
+  return program.account.signatureConstraint.all();
 };
