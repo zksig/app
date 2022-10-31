@@ -316,7 +316,7 @@ const CreateAgreement = () => {
       const encryptionPWBytes = await signMessage(
         Buffer.from(`Encrypt PDF for ${agreementAddress}`)
       );
-      const { cid: encryptedCid } = await encryptAgreementAndPin({
+      const encryptedCid = await encryptAgreementAndPin({
         pdf,
         name: agreementAddress.toString(),
         encryptionPWBytes,

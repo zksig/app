@@ -1,4 +1,4 @@
-import { Readable } from "stream";
+import { CarReader } from "@ipld/car";
 import { File, Web3Storage } from "web3.storage";
 
 if (!process.env.WEB3_STORAGE_TOKEN) {
@@ -8,7 +8,11 @@ if (!process.env.WEB3_STORAGE_TOKEN) {
 const client = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN! });
 
 export const store = async (name: string, file: Buffer) => {
-  return client.put([new File([file], name)], {
+  const car = await CarReader.fromBytes(file);
+  console.log(car);
+
+  // @ts-ignore
+  return client.putCar(car, {
     wrapWithDirectory: false,
   });
 };

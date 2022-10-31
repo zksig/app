@@ -1,4 +1,7 @@
 import nacl from "tweetnacl";
+import { CarReader } from "@ipld/car";
+import { packToBlob } from "ipfs-car/pack/blob";
+import { MemoryBlockStore } from "ipfs-car/blockstore/memory";
 
 export const downloadAndDecrypt = async ({
   cid,
@@ -31,15 +34,21 @@ export const encryptAgreementAndPin = async ({
   pdf: Uint8Array;
   name: string;
   encryptionPWBytes: Uint8Array;
-}): Promise<{ cid: string }> => {
+}): Promise<string> => {
   const encrypted = nacl.secretbox(
     pdf,
     new Uint8Array(24),
     encryptionPWBytes.slice(0, 32)
   );
 
+  const { root, car } = await packToBlob({
+    input: encrypted,
+    blockstore: new MemoryBlockStore(),
+    wrapWithDirectory: false,
+  });
+
   const fd = new FormData();
-  fd.append("pdf", new Blob([encrypted]), name);
+  fd.append("pdf", car, name);
 
   const res = await fetch("/api/upload", {
     method: "POST",
@@ -50,5 +59,5 @@ export const encryptAgreementAndPin = async ({
     throw new Error("Unable to pin agreement to IPFS");
   }
 
-  return res.json();
+  return root.toV1().toString();
 };
