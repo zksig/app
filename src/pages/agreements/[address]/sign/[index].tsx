@@ -48,7 +48,7 @@ const SignAgreementPage: NextPage = () => {
         Buffer.from(`Encrypt PDF for ${agreement.address}`)
       );
 
-      const { cid } = await encryptAgreementAndPin({
+      const cid = await encryptAgreementAndPin({
         encryptionPWBytes,
         pdf,
         name: `Signature - ${index} on ${agreement.address}`,
