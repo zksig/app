@@ -1,5 +1,4 @@
 import nacl from "tweetnacl";
-import { CarReader } from "@ipld/car";
 import { packToBlob } from "ipfs-car/pack/blob";
 import { MemoryBlockStore } from "ipfs-car/blockstore/memory";
 

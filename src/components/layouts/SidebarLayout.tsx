@@ -10,7 +10,7 @@ const MobileHeader = () => {
       <div className="w-24">
         <Image
           alt="zksig logo"
-          src="/logo.png"
+          src="/logo_v2.jpg"
           width="507"
           height="210"
           layout="responsive"
@@ -120,12 +120,12 @@ const MobileHeader = () => {
 const DesktopHeader = () => (
   <>
     <div className="flex h-16 w-full items-center bg-slate-900 p-4">
-      <div className="m-auto w-1/3">
+      <div className="m-auto w-2/5">
         <Image
           alt="zksig logo"
-          src="/logo.png"
-          width="507"
-          height="210"
+          src="/logo_v2.jpg"
+          width="554"
+          height="344"
           layout="responsive"
         />
       </div>

@@ -1,5 +1,5 @@
 import { CarReader } from "@ipld/car";
-import { File, Web3Storage } from "web3.storage";
+import { Web3Storage } from "web3.storage";
 
 if (!process.env.WEB3_STORAGE_TOKEN) {
   throw new Error("Missing WEB3_STORAGE_TOKEN environment variable");
