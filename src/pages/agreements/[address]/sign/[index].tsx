@@ -25,7 +25,7 @@ const SignAgreementPage: NextPage = () => {
 
   const index = Number(router.query.index as string);
   const encryptionPW = decodeURIComponent(router.query.pw as string);
-  const signature = agreement?.signatures[Number()];
+  const signature = agreement?.signatures[Number(router.query.index)];
 
   const refetchAgreement = useCallback(async () => {
     setAgreement(

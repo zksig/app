@@ -9,7 +9,6 @@ const client = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN! });
 
 export const store = async (name: string, file: Buffer) => {
   const car = await CarReader.fromBytes(file);
-  console.log(car);
 
   // @ts-ignore
   return client.putCar(car, {
