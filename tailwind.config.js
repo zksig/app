@@ -11,6 +11,9 @@ module.exports = {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
     },
+    animation: {
+      "spin-slow": "spin 3s linear infinite",
+    },
   },
   plugins: [require("@tailwindcss/forms"), require("@headlessui/tailwindcss")],
 };
