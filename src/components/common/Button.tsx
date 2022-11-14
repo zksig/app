@@ -43,7 +43,7 @@ export default function Button({
       onClick={onClick}
     >
       {icon ? icon : iconNames[iconName || ""]}
-      <span>{text}</span>
+      <span className="block truncate">{text}</span>
     </button>
   );
 }

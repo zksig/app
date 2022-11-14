@@ -1,13 +1,8 @@
 import Link from "next/link";
+import { Agreement } from "../../services/filecoin";
+import { colorByStatus, statusTitle } from "../../utils/ui";
 import Badge from "../common/Badge";
-import { Agreement } from "../../services/solana";
 
-const colorByStatus = {
-  pending: "bg-yellow-500",
-  complete: "bg-indigo-500",
-  approved: "bg-teal-500",
-  rejected: "bg-rose-500",
-};
 
 export default function AgreementList({
   agreements,
@@ -15,11 +10,11 @@ export default function AgreementList({
   agreements: Agreement[];
 }) {
   const agreementsDisplay = agreements.map((agreement) => (
-    <li key={agreement.address.toString()}>
-      <Link href={`/agreements/${agreement.address}`}>
+    <li key={agreement.index.toString()}>
+      <Link href={`/agreements/${agreement.index}`}>
         <a
           className="m-2 flex items-center gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
-          href={`/agreements/${agreement.address}`}
+          href={`/agreements/${agreement.index}`}
         >
           <section className="basis-2/5">
             <p className="font-semibold">{agreement.identifier}</p>
@@ -27,7 +22,7 @@ export default function AgreementList({
             <Badge
               className="w-36"
               color={colorByStatus[agreement.status]}
-              text={agreement.status}
+              text={statusTitle[agreement.status]}
             />
           </section>
           <section className="flex grow">

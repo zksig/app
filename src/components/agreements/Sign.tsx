@@ -1,10 +1,7 @@
+import type { Agreement, SignatureConstraint } from "../../services/filecoin";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";
-import {
-  AgreementWithSignatures,
-  SignatureConstraint,
-} from "../../services/solana";
 import { downloadAndDecrypt } from "../../utils/files";
 import Badge from "../common/Badge";
 import Button from "../common/Button";
@@ -15,7 +12,7 @@ export default function Sign({
   encryptionPW,
   onSign,
 }: {
-  agreement: AgreementWithSignatures;
+  agreement: Agreement;
   signature: SignatureConstraint;
   encryptionPW: string;
   onSign: () => void;

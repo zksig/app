@@ -1,15 +1,18 @@
 import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
-import { PDFDocument, PDFImage } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useIPFS } from "../../providers/IPFSProvider";
-import { createAgreement, getAgreementAddress } from "../../services/solana";
 import Button from "../common/Button";
 import { encryptAgreementAndPin } from "../../utils/files";
+import {
+  createAgreement,
+  getAddress,
+  signMessage,
+} from "../../services/filecoin";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -301,7 +304,6 @@ const AddSignatures = ({
 const CreateAgreement = () => {
   const router = useRouter();
   const ipfs = useIPFS();
-  const { signMessage } = useWallet();
   const [identifier, setIdentifier] = useState("");
   const [pdf, setPdf] = useState<Uint8Array>();
   const [pdfDescription, setPdfDescription] = useState<
@@ -312,13 +314,12 @@ const CreateAgreement = () => {
     if (!ipfs || !pdf || !signMessage) return;
 
     try {
-      const agreementAddress = await getAgreementAddress();
       const encryptionPWBytes = await signMessage(
-        Buffer.from(`Encrypt PDF for ${agreementAddress}`)
+        `Encrypt PDF for ${identifier}`
       );
       const encryptedCid = await encryptAgreementAndPin({
         pdf,
-        name: agreementAddress.toString(),
+        name: `${await getAddress()}: ${identifier}`,
         encryptionPWBytes,
       });
       const [pdfIPFS, descriptionIPFS] = await Promise.all([
@@ -326,7 +327,7 @@ const CreateAgreement = () => {
         ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
       ]);
 
-      await createAgreement({
+      const id = await createAgreement({
         identifier,
         cid: pdfIPFS.cid.toV1().toString(),
         encryptedCid,
@@ -334,7 +335,9 @@ const CreateAgreement = () => {
         description: pdfDescription,
       });
 
-      router.push(`/agreements/${agreementAddress}`);
+      console.log(id);
+
+      router.push(`/agreements/${id}`);
     } catch (e) {
       console.log(e);
       toast.error("Unable to create agreement");

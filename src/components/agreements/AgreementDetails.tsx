@@ -1,21 +1,20 @@
-import type { AgreementWithSignatures } from "../../services/solana";
+import { Agreement, signMessage } from "../../services/filecoin";
 import { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Badge from "../common/Badge";
-import { colorByStatus } from "../../utils/ui";
+import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
+import { constants } from "ethers";
 
 export default function AgreementDetails({
   agreement,
 }: {
-  agreement: AgreementWithSignatures;
+  agreement: Agreement;
 }) {
   const ipfs = useIPFS();
-  const { signMessage } = useWallet();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
@@ -23,7 +22,7 @@ export default function AgreementDetails({
     if (!signMessage) throw new Error("Wallet not connected");
 
     const encryptionPWBytes = await signMessage(
-      Buffer.from(`Encrypt PDF for ${agreement.address}`)
+      `Encrypt PDF for ${agreement.identifier}`
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
@@ -47,16 +46,20 @@ export default function AgreementDetails({
     }
   }, [ipfs, agreement, getEncyptionPWBytes]);
 
-  const signaturesDisplay = agreement.signatures.map((signature) => (
-    <li key={signature.address.toString()}>
+  const signaturesDisplay = agreement.constraints.map((constraint) => (
+    <li key={constraint.identifier}>
       <div className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50">
         <section className="basis-2/5">
-          <p className="font-semibold">{signature.identifier}</p>
-          <p>{signature.signer?.toString() || "Waiting..."}</p>
+          <p className="font-semibold">{constraint.identifier}</p>
+          <p>
+            {constraint.signer === constants.AddressZero
+              ? "Waiting..."
+              : constraint.signer}
+          </p>
           <Badge
             className="w-36"
-            color={signature.used ? "bg-teal-500" : "bg-yellow-500"}
-            text={signature.used ? "Signed" : "Unsigned"}
+            color={constraint.used ? "bg-teal-500" : "bg-yellow-500"}
+            text={constraint.used ? "Signed" : "Unsigned"}
           />
         </section>
         <section className="">
@@ -70,7 +73,7 @@ export default function AgreementDetails({
                   Buffer.from(encryptionPWBytes!).toString("base64")
                 );
                 await window.navigator.clipboard.writeText(
-                  `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.address}/sign/${signature.index}?pw=${pw}`
+                  `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.index}/sign/${constraint.identifier}?pw=${pw}`
                 );
                 toast.info("Link copied to clipboard");
               }}
@@ -124,7 +127,7 @@ export default function AgreementDetails({
         <h2 className="text-2xl">Agreement Details:</h2>
         <h3 className="text-xl font-bold"> {agreement.identifier}</h3>
         <Badge
-          text={agreement.status}
+          text={statusTitle[agreement.status]}
           color={colorByStatus[agreement.status]}
         />
       </div>

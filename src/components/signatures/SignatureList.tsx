@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Badge from "../common/Badge";
-import { Agreement, SignaturePacket } from "../../services/solana";
+import { ESignaturePacket } from "../../services/filecoin";
 
 const colorByStatus = {
   pending: "bg-yellow-500",
@@ -12,11 +12,11 @@ const colorByStatus = {
 export default function SignatureList({
   signatures,
 }: {
-  signatures: SignaturePacket[];
+  signatures: ESignaturePacket[];
 }) {
   const signaturesDisplay = signatures.map((signature) => (
-    <li key={signature.address.toString()}>
-      <Link href={`/signatures/${signature.address}`}>
+    <li key={signature.index}>
+      <Link href={`/signatures/${signature.index}`}>
         <a
           className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
           href="#"
@@ -24,11 +24,7 @@ export default function SignatureList({
           <section className="basis-2/5">
             <p className="font-semibold">{signature.identifier}</p>
             <p>{signature.signer.toString()}</p>
-            <Badge
-              className="w-36"
-              color={signature.signed ? "bg-teal-500" : "bg-yellow-500"}
-              text={signature.signed ? "Signed" : "Unsigned"}
-            />
+            <Badge className="w-36" color="bg-teal-500" text="Signed" />
           </section>
           <section>
             <svg

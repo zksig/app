@@ -1,26 +1,27 @@
-import type {
-  AgreementWithSignatures,
-  SignaturePacket,
-} from "../../services/solana";
+import {
+  Agreement,
+  ESignaturePacket,
+  signMessage,
+} from "../../services/filecoin";
 import { useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Badge from "../common/Badge";
-import { colorByStatus } from "../../utils/ui";
+import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
+import { useWalletAddress } from "../../providers/FilecoinProvider";
 
 export default function SignatureDetails({
   agreement,
   signature,
 }: {
-  agreement: AgreementWithSignatures;
-  signature: SignaturePacket;
+  agreement: Agreement;
+  signature: ESignaturePacket;
 }) {
   const ipfs = useIPFS();
-  const { signMessage, publicKey } = useWallet();
+  const address = useWalletAddress();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
@@ -28,7 +29,7 @@ export default function SignatureDetails({
     if (!signMessage) throw new Error("Wallet not connected");
 
     const encryptionPWBytes = await signMessage(
-      Buffer.from(`Encrypt PDF for ${agreement.address}`)
+      `Encrypt PDF for ${agreement.identifier}`
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
@@ -52,27 +53,23 @@ export default function SignatureDetails({
     }
   }, [ipfs, agreement, getEncyptionPWBytes]);
 
-  const signaturesDisplay = agreement.signatures.map((s) => (
-    <li key={s.address.toString()}>
+  const signaturesDisplay = agreement.constraints.map((constraint) => (
+    <li key={constraint.identifier}>
       <div className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50">
         <section className="basis-2/5">
-          <p className="font-semibold">{s.identifier}</p>
-          <p>{s.signer?.toString() || "Waiting..."}</p>
+          <p className="font-semibold">{constraint.identifier}</p>
+          <p>{constraint.signer || "Waiting..."}</p>
           <Badge
             className="w-36"
-            color={s.used ? "bg-teal-500" : "bg-yellow-500"}
-            text={s.used ? "Signed" : "Unsigned"}
+            color={constraint.used ? "bg-teal-500" : "bg-yellow-500"}
+            text={constraint.used ? "Signed" : "Unsigned"}
           />
         </section>
         <section className="">
           <Badge
-            text={
-              s.signer?.toString() === publicKey?.toString() ? "You" : "Other"
-            }
+            text={constraint.signer === address ? "You" : "Other"}
             color={
-              s.signer?.toString() === publicKey?.toString()
-                ? "bg-fuchsia-500"
-                : "bg-purple-500"
+              constraint.signer === address ? "bg-fuchsia-500" : "bg-purple-500"
             }
           />
         </section>
@@ -86,7 +83,7 @@ export default function SignatureDetails({
         <h2 className="text-2xl">Agreement Details:</h2>
         <h3 className="text-xl font-bold"> {agreement.identifier}</h3>
         <Badge
-          text={agreement.status}
+          text={statusTitle[agreement.status]}
           color={colorByStatus[agreement.status]}
         />
       </div>
