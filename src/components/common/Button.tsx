@@ -27,6 +27,7 @@ export default function Button({
   icon,
   className,
   onClick,
+  disabled,
 }: {
   text: string;
   color?: string;
@@ -35,12 +36,15 @@ export default function Button({
   icon?: ReactNode;
   className?: string;
   onClick?: MouseEventHandler;
+  disabled?: boolean;
 }) {
   return (
     <button
+      style={{ cursor: "pointer" }}
       className={`my-4 flex w-48 items-center justify-center gap-2 rounded p-2 text-white transition duration-200 ${className} ${color} hover:${hoverColor}`}
       type="button"
       onClick={onClick}
+      disabled={disabled}
     >
       {icon ? icon : iconNames[iconName || ""]}
       <span className="block truncate">{text}</span>

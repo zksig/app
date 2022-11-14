@@ -12,6 +12,7 @@ import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
 import { useWalletAddress } from "../../providers/FilecoinProvider";
+import { constants } from "ethers";
 
 export default function SignatureDetails({
   agreement,
@@ -58,7 +59,11 @@ export default function SignatureDetails({
       <div className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50">
         <section className="basis-2/5">
           <p className="font-semibold">{constraint.identifier}</p>
-          <p>{constraint.signer || "Waiting..."}</p>
+          <p>
+            {constraint.signer === constants.AddressZero
+              ? "Waiting..."
+              : constraint.signer}
+          </p>
           <Badge
             className="w-36"
             color={constraint.used ? "bg-teal-500" : "bg-yellow-500"}
@@ -67,9 +72,13 @@ export default function SignatureDetails({
         </section>
         <section className="">
           <Badge
-            text={constraint.signer === address ? "You" : "Other"}
+            text={
+              constraint.signer?.toLowerCase() === address ? "You" : "Other"
+            }
             color={
-              constraint.signer === address ? "bg-fuchsia-500" : "bg-purple-500"
+              constraint.signer?.toLowerCase() === address
+                ? "bg-fuchsia-500"
+                : "bg-purple-500"
             }
           />
         </section>

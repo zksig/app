@@ -50,12 +50,11 @@ export const connect = async () => {
   const provider = await getProvider();
   const [account] = await provider.send("eth_requestAccounts", []);
 
-  contract.connect(provider.getSigner());
-
   return account;
 };
 
 export const getAddress = async () => {
+  console.log(await getProvider().send("eth_accounts", []));
   return (await getProvider().send("eth_accounts", []))[0];
 };
 
