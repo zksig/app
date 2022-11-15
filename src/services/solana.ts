@@ -1,6 +1,7 @@
 import { AnchorProvider, Program, utils } from "@project-serum/anchor";
 import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { IDL } from "../utils/e_signatures";
+import { getContract } from "./filecoin";
 
 export type SolanaProfile = {
   agreementCount: number;

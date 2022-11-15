@@ -4,23 +4,24 @@ import { useRouter } from "next/router";
 import { PublicKey } from "@solana/web3.js";
 import SignatureDetails from "../../components/signatures/SignatureDetails";
 import {
-  AgreementWithSignatures,
+  Agreement,
+  ESignaturePacket,
   getAgreement,
   getSignature,
-  SignaturePacket,
-} from "../../services/solana";
+} from "../../services/filecoin";
 
 const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();
-  const [agreement, setAgreement] = useState<AgreementWithSignatures>();
-  const [signature, setSignature] = useState<SignaturePacket>();
+  const [agreement, setAgreement] = useState<Agreement>();
+  const [signature, setSignature] = useState<ESignaturePacket>();
 
   useEffect(() => {
     (async () => {
-      const signature = await getSignature(
-        new PublicKey(router.query.address as string)
+      const signature = await getSignature(Number(router.query.index));
+      const agreement = await getAgreement(
+        signature.index,
+        signature.agreementOwner
       );
-      const agreement = await getAgreement(signature.agreement);
 
       setSignature(signature);
       setAgreement(agreement);

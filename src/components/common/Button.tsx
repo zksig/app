@@ -47,7 +47,7 @@ export default function Button({
       disabled={disabled}
     >
       {icon ? icon : iconNames[iconName || ""]}
-      <span>{text}</span>
+      <span className="block truncate">{text}</span>
     </button>
   );
 }

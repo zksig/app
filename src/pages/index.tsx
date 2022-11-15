@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { DocumentIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { getAgreements, getSignatures } from "../services/solana";
+import { getProfile } from "../services/filecoin";
 
 const Home: NextPage = () => {
   const [agreementCount, setAgreementCount] = useState<number>();
@@ -9,14 +9,12 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     (async () => {
-      const [agreements, signatures] = await Promise.all([
-        getAgreements(),
-        getSignatures(),
-      ]);
-      setAgreementCount(agreements.length);
-      setSignatureCount(signatures.length);
+      const profile = await getProfile();
+      setAgreementCount(profile.totalAgreements);
+      setSignatureCount(profile.totalSignatures);
     })();
   }, []);
+
   return (
     <>
       <section className="mb-6 flex gap-20">

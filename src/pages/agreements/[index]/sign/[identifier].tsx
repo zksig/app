@@ -1,42 +1,39 @@
 import type { NextPage } from "next";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { PublicKey } from "@solana/web3.js";
-import {
-  AgreementWithSignatures,
-  getAgreement,
-  signAgreement,
-} from "../../../../services/solana";
 import Sign from "../../../../components/agreements/Sign";
 import { toast } from "react-toastify";
-import nacl from "tweetnacl";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useIPFS } from "../../../../providers/IPFSProvider";
 import {
   downloadAndDecrypt,
   encryptAgreementAndPin,
 } from "../../../../utils/files";
+import {
+  Agreement,
+  getAgreement,
+  sign,
+  signMessage,
+} from "../../../../services/filecoin";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();
   const ipfs = useIPFS();
-  const { signMessage } = useWallet();
-  const [agreement, setAgreement] = useState<AgreementWithSignatures>();
+  const [agreement, setAgreement] = useState<Agreement>();
 
   const index = Number(router.query.index as string);
+  const identifier = router.query.identifier as string;
   const encryptionPW = decodeURIComponent(router.query.pw as string);
-  const signature = agreement?.signatures[Number(router.query.index)];
+  const signature = agreement?.constraints.find(
+    (constraint) => constraint.identifier === identifier
+  );
 
   const refetchAgreement = useCallback(async () => {
-    setAgreement(
-      await getAgreement(new PublicKey(router.query.address as string))
-    );
+    setAgreement(await getAgreement(index));
   }, [router.query.address]);
 
   const handleSign = useCallback(async () => {
     try {
       if (!ipfs) throw new Error("IPFS not loaded");
-      if (!signMessage) throw new Error("Wallet not connected");
       if (!agreement) throw new Error("Missing agreement");
 
       const pdf = await downloadAndDecrypt({
@@ -45,19 +42,19 @@ const SignAgreementPage: NextPage = () => {
       });
 
       const encryptionPWBytes = await signMessage(
-        Buffer.from(`Encrypt PDF for ${agreement.address}`)
+        `Encrypt PDF for ${agreement.identifier}`
       );
 
       const cid = await encryptAgreementAndPin({
         encryptionPWBytes,
         pdf,
-        name: `Signature - ${index} on ${agreement.address}`,
+        name: `Signature - ${identifier} on ${agreement.identifier}`,
       });
 
-      await signAgreement({
-        index,
+      await sign({
+        agreement,
+        identifier,
         encryptedCid: cid,
-        agreementAddress: agreement.address,
       });
 
       await refetchAgreement();

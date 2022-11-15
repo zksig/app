@@ -3,7 +3,7 @@ import AgreementList from "../../components/agreements/AgreementList";
 import Link from "next/link";
 import Button from "../../components/common/Button";
 import { useEffect, useState } from "react";
-import { Agreement, getAgreements } from "../../services/solana";
+import { Agreement, getAgreements } from "../../services/filecoin";
 
 const AgreementsPage: NextPage = () => {
   const [agreements, setAgreements] = useState<Agreement[]>([]);
@@ -13,6 +13,8 @@ const AgreementsPage: NextPage = () => {
       setAgreements(await getAgreements());
     })();
   }, []);
+
+  console.log(agreements);
 
   return (
     <>

@@ -1,10 +1,10 @@
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
-import { getSignatures, SignaturePacket } from "../../services/solana";
 import SignatureList from "../../components/signatures/SignatureList";
+import { ESignaturePacket, getSignatures } from "../../services/filecoin";
 
 const SignaturesPage: NextPage = () => {
-  const [signatures, setSignatures] = useState<SignaturePacket[]>([]);
+  const [signatures, setSignatures] = useState<ESignaturePacket[]>([]);
 
   useEffect(() => {
     (async () => {
