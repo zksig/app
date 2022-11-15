@@ -29,6 +29,28 @@ export type ESignaturePacket = {
   signer: string;
 };
 
+let selectedNetwork =
+  typeof window !== "undefined"
+    ? localStorage.getItem("PROVIDER_NETWORK") || "wallaby"
+    : "wallaby";
+
+const networks: Record<
+  string,
+  {
+    chainId: string;
+    contractAddress: string;
+  }
+> = {
+  sepolia: {
+    chainId: `0x${(11155111).toString(16)}`,
+    contractAddress: "0x1e7ef1a8f6b6710c6541dbacf36c4b9173712b6a",
+  },
+  wallaby: {
+    chainId: `0x${(31415).toString(16)}`,
+    contractAddress: "0x92Af8EFb9A433b232398fB6D801d080aE44AaB21",
+  },
+};
+
 export const getProvider = () => {
   const provider = new providers.Web3Provider(
     typeof window !== "undefined"
@@ -39,9 +61,26 @@ export const getProvider = () => {
   return provider;
 };
 
-export const connect = async () => {
+export const getContract = () => {
+  const provider = getProvider();
+  const contract = new Contract(
+    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
+      networks[selectedNetwork].contractAddress,
+    ESignature.abi,
+    provider
+  );
+
+  return contract.connect(provider.getSigner());
+};
+
+export const connect = async (network: "sepolia" | "wallaby") => {
+  localStorage.setItem("PROVIDER_NETWORK", network);
+  selectedNetwork = network;
   const provider = await getProvider();
   const [account] = await provider.send("eth_requestAccounts", []);
+  await provider.send("wallet_switchEthereumChain", [
+    { chainId: networks[network].chainId },
+  ]);
 
   return account;
 };
@@ -52,18 +91,6 @@ export const getAddress = async () => {
 
 export const getIsConnected = async () => {
   return (await getProvider().send("eth_accounts", [])).length > 0;
-};
-
-export const getContract = () => {
-  const provider = getProvider();
-  const contract = new Contract(
-    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0x92Af8EFb9A433b232398fB6D801d080aE44AaB21",
-    ESignature.abi,
-    provider
-  );
-
-  return contract.connect(provider.getSigner());
 };
 
 export const signMessage = async (message: string) => {

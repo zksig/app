@@ -21,7 +21,7 @@ export default function WalletButton() {
           text={address}
           onClick={async () => {
             try {
-              await connect();
+              await connect("wallaby");
             } catch (e: any) {
               toast.error(e);
             }
@@ -32,7 +32,7 @@ export default function WalletButton() {
           text="Connect Wallet"
           onClick={async () => {
             try {
-              await connect();
+              await connect("wallaby");
               location.reload();
             } catch (e: any) {
               toast.error(e);
