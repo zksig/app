@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import nextConnect from "next-connect";
 import multer from "multer";
 import { HttpError } from "../../utils/HttpError";
 import { store } from "../../services/storage";
-import { createReadStream } from "fs";
 
 const upload = multer({
   storage: multer.memoryStorage(),

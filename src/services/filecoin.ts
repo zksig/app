@@ -32,7 +32,7 @@ export type ESignaturePacket = {
 const provider = new providers.Web3Provider(
   typeof window !== "undefined"
     ? window.ethereum
-    : new providers.JsonRpcProvider()
+    : new providers.JsonRpcProvider("https://wallaby.node.glif.io/rpc/v0")
 );
 
 const contract = new Contract(

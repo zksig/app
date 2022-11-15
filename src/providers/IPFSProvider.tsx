@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import {
   createContext,
   ReactNode,
@@ -9,10 +10,13 @@ import { create, IPFS } from "ipfs-core";
 
 const IPFSContext = createContext<IPFS | null>(null);
 
-const ipfsPromise = create({ start: false }).then((ipfs) => {
-  if (typeof window !== "undefined") ipfs.start();
-  return ipfs;
-});
+const ipfsPromise =
+  typeof window !== "undefined"
+    ? create({ start: false }).then((ipfs) => {
+        ipfs.start();
+        return ipfs;
+      })
+    : null;
 
 export const IPFSProvider = ({ children }: { children: ReactNode }) => {
   const [ipfs, setIpfs] = useState<IPFS | null>(null);
@@ -20,7 +24,7 @@ export const IPFSProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let ipfs: IPFS;
     (async () => {
-      ipfs = await ipfsPromise;
+      ipfs = (await ipfsPromise) as IPFS;
       setIpfs(ipfs);
     })();
 
