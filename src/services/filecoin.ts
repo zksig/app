@@ -58,7 +58,7 @@ export const getContract = () => {
   const provider = getProvider();
   const contract = new Contract(
     process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0x92Af8EFb9A433b232398fB6D801d080aE44AaB21",
+      "0xfa85093B31bDAA47487C26Fb59d25Ef803261730",
     ESignature.abi,
     provider
   );
