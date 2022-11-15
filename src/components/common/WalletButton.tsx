@@ -33,6 +33,7 @@ export default function WalletButton() {
           onClick={async () => {
             try {
               await connect();
+              location.reload();
             } catch (e: any) {
               toast.error(e);
             }
