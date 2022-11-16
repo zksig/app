@@ -5,6 +5,12 @@ module.exports = {
     "./src/pages/**/*.{js,ts,jsx,tsx}",
     "./src/components/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    {
+      pattern: /(bg|text)-(purple|fuchsia|teal|slate)-.+/,
+      variants: ["hover"],
+    },
+  ],
   theme: {
     extend: {
       fontFamily: {

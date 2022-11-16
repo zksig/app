@@ -19,16 +19,11 @@ const AgreementsPage: NextPage = () => {
   return (
     <>
       <h2 className="mb-2 text-2xl">Agreements</h2>
-      <Link href="/agreements/create">
-        <div className="flex justify-end">
-          <Button
-            color="bg-fuchsia-500"
-            hoverColor="bg-fuchsia-400"
-            text="Create Agreement"
-            iconName="add"
-          />
-        </div>
-      </Link>
+      <div className="flex justify-end">
+        <Link href="/agreements/create">
+          <Button text="Create Agreement" iconName="add" />
+        </Link>
+      </div>
       <AgreementList agreements={agreements} />
     </>
   );
