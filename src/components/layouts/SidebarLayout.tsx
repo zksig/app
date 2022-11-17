@@ -213,7 +213,7 @@ export default function SidebarLayout({
           <WalletButton />
         </header>
         <section className="p-4" style={{ height: "calc(100vh - 64px)" }}>
-          <div className="h-full overflow-y-scroll rounded bg-white p-8">
+          <div className="my-8 mx-16 h-full overflow-y-scroll rounded bg-white py-12 px-20">
             {children}
           </div>
         </section>
