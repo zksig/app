@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { toast } from "react-toastify";
 import { useProviderIsConnected } from "../../providers/FilecoinProvider";
 import { connect, getAddress } from "../../services/filecoin";
@@ -19,6 +20,7 @@ export default function WalletButton() {
       {isConnected ? (
         <Button
           text={address}
+          icon={<Image src="/filecoin.svg" height={75} width={75} />}
           onClick={async () => {
             try {
               await connect();

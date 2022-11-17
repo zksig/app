@@ -29,20 +29,13 @@ export type ESignaturePacket = {
   signer: string;
 };
 
-const provider = new providers.Web3Provider(
-  typeof window !== "undefined"
-    ? window.ethereum
-    : new providers.JsonRpcProvider()
-);
-
-const contract = new Contract(
-  process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-    "0x92Af8EFb9A433b232398fB6D801d080aE44AaB21",
-  ESignature.abi,
-  provider
-);
-
 export const getProvider = () => {
+  const provider = new providers.Web3Provider(
+    typeof window !== "undefined"
+      ? window.ethereum
+      : new providers.JsonRpcProvider("https://wallaby.node.glif.io/rpc/v0")
+  );
+
   return provider;
 };
 
@@ -54,7 +47,6 @@ export const connect = async () => {
 };
 
 export const getAddress = async () => {
-  console.log(await getProvider().send("eth_accounts", []));
   return (await getProvider().send("eth_accounts", []))[0];
 };
 
@@ -63,6 +55,14 @@ export const getIsConnected = async () => {
 };
 
 export const getContract = () => {
+  const provider = getProvider();
+  const contract = new Contract(
+    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
+      "0xfa85093B31bDAA47487C26Fb59d25Ef803261730",
+    ESignature.abi,
+    provider
+  );
+
   return contract.connect(provider.getSigner());
 };
 

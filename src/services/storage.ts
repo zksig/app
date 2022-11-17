@@ -12,6 +12,7 @@ export const store = async (name: string, file: Buffer) => {
 
   // @ts-ignore
   return client.putCar(car, {
+    name,
     wrapWithDirectory: false,
   });
 };
