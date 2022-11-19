@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Badge from "../common/Badge";
-import { ESignaturePacket } from "../../services/filecoin";
+import { SignaturePacket } from "../../services/filecoin";
 
 const colorByStatus = {
   pending: "bg-yellow-500",
@@ -12,7 +12,7 @@ const colorByStatus = {
 export default function SignatureList({
   signatures,
 }: {
-  signatures: ESignaturePacket[];
+  signatures: SignaturePacket[];
 }) {
   const signaturesDisplay = signatures.map((signature) => (
     <li key={signature.index}>

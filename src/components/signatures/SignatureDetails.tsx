@@ -1,6 +1,6 @@
 import {
   Agreement,
-  ESignaturePacket,
+  SignaturePacket,
   signMessage,
 } from "../../services/filecoin";
 import { useState } from "react";
@@ -19,7 +19,7 @@ export default function SignatureDetails({
   signature,
 }: {
   agreement: Agreement;
-  signature: ESignaturePacket;
+  signature: SignaturePacket;
 }) {
   const ipfs = useIPFS();
   const address = useWalletAddress();

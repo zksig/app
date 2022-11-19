@@ -1,32 +1,43 @@
-import { constants, Contract, providers } from "ethers";
-import ESignature from "../utils/ESignature.json";
+import { BigNumber, constants, Contract, providers } from "ethers";
+import DigitalSignature from "../utils/DigitalSignature.json";
+
+export type Profile = {
+  totalAgreements: BigNumber;
+  totalSignatures: BigNumber;
+};
 
 export type SignatureConstraint = {
   identifier: string;
   signer: string;
-  used: boolean;
+  totalUsed: BigNumber;
+  allowedToUse: BigNumber; // set to 0 for unlimited
 };
 
 export type Agreement = {
   owner: string;
   status: number;
-  index: number;
+  index: BigNumber;
   identifier: string;
   cid: string;
   encryptedCid: string;
   descriptionCid: string;
   signedPackets: number;
   totalPackets: number;
+  nftContractAddress?: string;
   constraints: SignatureConstraint[];
 };
 
-export type ESignaturePacket = {
+export type SignaturePacket = {
   agreementOwner: string;
-  agreementIndex: number;
-  index: number;
+  agreementIndex: BigNumber;
+  index: BigNumber;
   identifier: string;
   encryptedCid: string;
   signer: string;
+  nftContractAddress?: string;
+  nftTokenId?: BigNumber;
+  timestamp: number;
+  blockNumber: number;
 };
 
 export const getProvider = () => {
@@ -37,6 +48,18 @@ export const getProvider = () => {
   );
 
   return provider;
+};
+
+export const getContract = () => {
+  const provider = getProvider();
+  const contract = new Contract(
+    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
+      "0x55A66ED1B6949Fa0A9F282b1c80E3c983E52f5Aa",
+    DigitalSignature.abi,
+    provider
+  );
+
+  return contract.connect(provider.getSigner());
 };
 
 export const connect = async () => {
@@ -53,26 +76,13 @@ export const getAddress = async () => {
 export const getIsConnected = async () => {
   return (await getProvider().send("eth_accounts", [])).length > 0;
 };
-
-export const getContract = () => {
-  const provider = getProvider();
-  const contract = new Contract(
-    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0xfa85093B31bDAA47487C26Fb59d25Ef803261730",
-    ESignature.abi,
-    provider
-  );
-
-  return contract.connect(provider.getSigner());
-};
-
 export const signMessage = async (message: string) => {
   return Uint8Array.from(
     Buffer.from(await getProvider().getSigner().signMessage(message))
   );
 };
 
-export const getProfile = async () => {
+export const getProfile = async (): Promise<Profile> => {
   return getContract().getProfile();
 };
 
@@ -91,40 +101,43 @@ export const createAgreement = async ({
 }) => {
   const constraints = description.map(({ identifier }) => ({
     identifier,
-    used: false,
     signer: constants.AddressZero,
+    totalUsed: 0,
+    allowedToUse: 1,
   }));
 
   return (
-    await getContract().createAgreement(
+    await getContract().createAgreement({
       identifier,
       cid,
       encryptedCid,
       descriptionCid,
-      constraints
-    )
+      withNFT: false,
+      nftImageCid: "",
+      constraints,
+    })
   ).wait(1);
 };
 
 export const getAgreements = async (page = 1): Promise<Agreement[]> => {
-  return getContract().getAgreements(await getAddress(), (page - 1) * 10);
+  return getContract().getAgreements(await getAddress(), (page - 1) * 10, 10);
 };
 
 export const getAgreement = async (
   index: number,
   address?: string
 ): Promise<Agreement> => {
-  return getContract().getAgreement(address || (await getAddress()), index);
+  return (
+    await getContract().getAgreements(address || (await getAddress()), index, 1)
+  )[0];
 };
 
-export const getSignatures = async (page = 1): Promise<ESignaturePacket[]> => {
-  return getContract().getSignatures(await getAddress(), (page - 1) * 10);
+export const getSignatures = async (page = 1): Promise<SignaturePacket[]> => {
+  return getContract().getSignatures(await getAddress(), (page - 1) * 10, 10);
 };
 
-export const getSignature = async (
-  index: number
-): Promise<ESignaturePacket> => {
-  return getContract().getSignature(await getAddress(), index);
+export const getSignature = async (index: number): Promise<SignaturePacket> => {
+  return (await getContract().getSignatures(await getAddress(), index, 1))[0];
 };
 
 export const sign = async ({
