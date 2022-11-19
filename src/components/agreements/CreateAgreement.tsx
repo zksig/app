@@ -334,7 +334,7 @@ const CreateAgreement = () => {
         ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
       ]);
 
-      const id = await createAgreement({
+      await createAgreement({
         identifier,
         cid: pdfIPFS.cid.toV1().toString(),
         encryptedCid,
@@ -342,7 +342,7 @@ const CreateAgreement = () => {
         description: pdfDescription,
       });
 
-      router.push(`/agreements/${id}`);
+      router.push("/agreements");
     } catch (e) {
       console.log(e);
       toast.error("Unable to create agreement");

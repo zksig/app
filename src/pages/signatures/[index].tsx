@@ -1,11 +1,10 @@
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { PublicKey } from "@solana/web3.js";
 import SignatureDetails from "../../components/signatures/SignatureDetails";
 import {
   Agreement,
-  ESignaturePacket,
+  SignaturePacket,
   getAgreement,
   getSignature,
 } from "../../services/filecoin";
@@ -13,7 +12,7 @@ import {
 const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();
   const [agreement, setAgreement] = useState<Agreement>();
-  const [signature, setSignature] = useState<ESignaturePacket>();
+  const [signature, setSignature] = useState<SignaturePacket>();
 
   useEffect(() => {
     (async () => {

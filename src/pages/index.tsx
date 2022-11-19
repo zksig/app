@@ -10,8 +10,8 @@ const Home: NextPage = () => {
   useEffect(() => {
     (async () => {
       const profile = await getProfile();
-      setAgreementCount(profile.totalAgreements);
-      setSignatureCount(profile.totalSignatures);
+      setAgreementCount(profile.totalAgreements.toNumber());
+      setSignatureCount(profile.totalSignatures.toNumber());
     })();
   }, []);
 
