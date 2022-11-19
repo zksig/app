@@ -1,9 +1,10 @@
 import { BigNumber, constants, Contract, providers } from "ethers";
+import { getChainIds, getNetwork, getProvider, supportedNetworks } from "./evm";
 import DigitalSignature from "../utils/DigitalSignature.json";
 
 export type Profile = {
-  totalAgreements: BigNumber;
-  totalSignatures: BigNumber;
+  totalAgreements: number;
+  totalSignatures: number;
 };
 
 export type SignatureConstraint = {
@@ -40,26 +41,30 @@ export type SignaturePacket = {
   blockNumber: number;
 };
 
-export const getProvider = () => {
-  const provider = new providers.Web3Provider(
-    typeof window !== "undefined"
-      ? window.ethereum
-      : new providers.JsonRpcProvider("https://wallaby.node.glif.io/rpc/v0")
-  );
+export const getContract = async ({
+  network = getNetwork(),
+  chainId,
+}: {
+  network?: string;
+  chainId?: number;
+} = {}) => {
+  const provider = getProvider({ network, chainId });
+  if (!chainId) {
+    const network = await provider.getNetwork();
+    chainId = network.chainId;
+  }
 
-  return provider;
-};
-
-export const getContract = () => {
-  const provider = getProvider();
   const contract = new Contract(
-    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0x55A66ED1B6949Fa0A9F282b1c80E3c983E52f5Aa",
+    supportedNetworks[network][chainId]?.contract,
     DigitalSignature.abi,
     provider
   );
 
-  return contract.connect(provider.getSigner());
+  if (provider instanceof providers.Web3Provider) {
+    contract.connect(provider.getSigner());
+  }
+
+  return contract;
 };
 
 export const connect = async () => {
@@ -76,6 +81,7 @@ export const getAddress = async () => {
 export const getIsConnected = async () => {
   return (await getProvider().send("eth_accounts", [])).length > 0;
 };
+
 export const signMessage = async (message: string) => {
   return Uint8Array.from(
     Buffer.from(await getProvider().getSigner().signMessage(message))
@@ -83,7 +89,19 @@ export const signMessage = async (message: string) => {
 };
 
 export const getProfile = async (): Promise<Profile> => {
-  return getContract().getProfile();
+  const profiles = await Promise.all(
+    getChainIds().map(async (chainId) => {
+      return (await getContract({ chainId: Number(chainId) })).getProfile();
+    })
+  );
+
+  return profiles.reduce(
+    (acc, profile) => ({
+      totalAgreements: acc.totalAgreements + profile.totalAgreements.toNumber(),
+      totalSignatures: acc.totalSignatures + profile.totalSignatures.toNumber(),
+    }),
+    { totalAgreements: 0, totalSignatures: 0 }
+  );
 };
 
 export const createAgreement = async ({
@@ -106,8 +124,9 @@ export const createAgreement = async ({
     allowedToUse: 1,
   }));
 
+  const contract = await getContract();
   return (
-    await getContract().createAgreement({
+    await contract.createAgreement({
       identifier,
       cid,
       encryptedCid,
@@ -120,24 +139,28 @@ export const createAgreement = async ({
 };
 
 export const getAgreements = async (page = 1): Promise<Agreement[]> => {
-  return getContract().getAgreements(await getAddress(), (page - 1) * 10, 10);
+  const contract = await getContract();
+  return contract.getAgreements(await getAddress(), (page - 1) * 10, 10);
 };
 
 export const getAgreement = async (
   index: number,
   address?: string
 ): Promise<Agreement> => {
+  const contract = await getContract();
   return (
-    await getContract().getAgreements(address || (await getAddress()), index, 1)
+    await contract.getAgreements(address || (await getAddress()), index, 1)
   )[0];
 };
 
 export const getSignatures = async (page = 1): Promise<SignaturePacket[]> => {
-  return getContract().getSignatures(await getAddress(), (page - 1) * 10, 10);
+  const contract = await getContract();
+  return contract.getSignatures(await getAddress(), (page - 1) * 10, 10);
 };
 
 export const getSignature = async (index: number): Promise<SignaturePacket> => {
-  return (await getContract().getSignatures(await getAddress(), index, 1))[0];
+  const contract = await getContract();
+  return (await contract.getSignatures(await getAddress(), index, 1))[0];
 };
 
 export const sign = async ({
@@ -149,8 +172,10 @@ export const sign = async ({
   identifier: string;
   encryptedCid: string;
 }) => {
+  const contract = await getContract();
+
   return (
-    await getContract().sign(
+    await contract.sign(
       agreement.owner,
       agreement.index,
       identifier,

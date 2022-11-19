@@ -12,7 +12,7 @@ import {
   createAgreement,
   getAddress,
   signMessage,
-} from "../../services/filecoin";
+} from "../../services/digitalSignature";
 import { Tab } from "@headlessui/react";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 

@@ -12,7 +12,7 @@ import {
   createAgreement,
   getAddress,
   signMessage,
-} from "../../services/filecoin";
+} from "../../services/digitalSignature";
 import Stepper from "../common/Stepper";
 import iconNames from "../common/icons";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
@@ -181,7 +181,6 @@ const Drop = ({
       drop: async (item: { title: string }, monitor) => {
         if (!pdf) return;
         const rect = canvas.current!.getBoundingClientRect();
-        console.log(rect, monitor.getSourceClientOffset());
         const x = monitor.getSourceClientOffset()!.x;
         const y =
           rect.height - (monitor.getSourceClientOffset()!.y - rect.top) - 20;

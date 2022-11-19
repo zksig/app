@@ -1,4 +1,4 @@
-import { Agreement, signMessage } from "../../services/filecoin";
+import { Agreement, signMessage } from "../../services/digitalSignature";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";

@@ -13,7 +13,7 @@ import {
   getAgreement,
   sign,
   signMessage,
-} from "../../../../services/filecoin";
+} from "../../../../services/digitalSignature";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();

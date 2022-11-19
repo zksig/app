@@ -7,7 +7,8 @@ import {
 } from "react";
 import { toast } from "react-toastify";
 import WalletButton from "../components/common/WalletButton";
-import { getAddress, getProvider } from "../services/filecoin";
+import { getAddress } from "../services/digitalSignature";
+import { getProvider } from "../services/evm";
 
 const FilecoinContext = createContext<{
   address: string;
