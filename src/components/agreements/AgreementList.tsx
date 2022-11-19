@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Agreement } from "../../services/filecoin";
+import { Agreement } from "../../services/digitalSignatures";
 import { colorByStatus, statusTitle } from "../../utils/ui";
 import Badge from "../common/Badge";
-
 
 export default function AgreementList({
   agreements,

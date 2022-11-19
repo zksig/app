@@ -1,13 +1,13 @@
-import { Agreement, signMessage } from "../../services/filecoin";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { constants } from "ethers";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Badge from "../common/Badge";
 import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
-import { constants } from "ethers";
+import { Agreement, signMessage } from "../../services/digitalSignatures";
 
 export default function AgreementDetails({
   agreement,

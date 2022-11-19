@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Badge from "../common/Badge";
-import { SignaturePacket } from "../../services/filecoin";
+import { SignaturePacket } from "../../services/digitalSignatures";
 
 const colorByStatus = {
   pending: "bg-yellow-500",

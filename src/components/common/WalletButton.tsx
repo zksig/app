@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { useProviderIsConnected } from "../../providers/FilecoinProvider";
-import { connect, getAddress } from "../../services/filecoin";
+import { connect, getAddress } from "../../services/digitalSignatures";
 import Button from "./Button";
 
 export default function WalletButton() {

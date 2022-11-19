@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { DocumentIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { getProfile } from "../services/filecoin";
+import { getProfile } from "../services/digitalSignatures";
 
 const Home: NextPage = () => {
   const [agreementCount, setAgreementCount] = useState<number>();

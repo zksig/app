@@ -12,7 +12,7 @@ import {
   createAgreement,
   getAddress,
   signMessage,
-} from "../../services/filecoin";
+} from "../../services/digitalSignatures";
 import Stepper from "../common/Stepper";
 import iconNames from "../common/icons";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
