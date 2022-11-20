@@ -343,6 +343,7 @@ const NewCreateAgreement = () => {
         encryptedCid,
         descriptionCid: descriptionIPFS.cid.toV1().toString(),
         description: pdfDescription,
+        withNFT: true,
       });
 
       router.push(`/agreements/${id}`);
