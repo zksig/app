@@ -14,8 +14,6 @@ const AgreementsPage: NextPage = () => {
     })();
   }, []);
 
-  console.log(agreements);
-
   return (
     <>
       <h2 className="mb-2 text-2xl">Agreements</h2>

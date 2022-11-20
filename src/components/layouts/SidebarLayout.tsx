@@ -72,7 +72,6 @@ const SideBar = ({ path }: { path: string }) => {
   };
 
   const isSelected = (route: { [key: string]: any }) => {
-    console.log({ route, path });
     return route.route === path;
   };
 

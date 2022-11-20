@@ -31,7 +31,6 @@ const Drop = ({
         const rect = canvas.current!.getBoundingClientRect();
         console.log(rect, monitor.getSourceClientOffset());
         const x = monitor.getSourceClientOffset()!.x - rect.left;
-        const documentBottom = rect.top + rect.height;
 
         // getSourceClientOffset.y = distance from top of viewport to top of dropped item preview before dropping
         // getSourceClientOffset.x = distance from left of viewport to left side of dropped item preview before dropping
