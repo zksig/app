@@ -18,6 +18,7 @@ import { Button, Grid, TextField, Typography } from "@mui/material";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { classes } from "./styles";
+import Review from "./Review";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -201,14 +202,13 @@ const NewCreateAgreement = () => {
       onUpdateSigner={handleUpdateSigner}
       setCurrentStep={setCurrentStep}
     />,
-    <Button
-      variant="contained"
-      key={"review"}
-      onClick={handleCreateAgreement}
-      sx={{ textDecoration: "none", textTransform: "none" }}
-    >
-      Agree and Continue
-    </Button>,
+
+    <Review
+      key={"Review"}
+      signers={pdfDescription.map((signer) => signer.identifier)}
+      handleCreateAgreement={handleCreateAgreement}
+      identifier={identifier}
+    />,
   ];
 
   return (

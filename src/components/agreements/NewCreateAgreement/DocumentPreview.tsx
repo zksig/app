@@ -56,7 +56,14 @@ const DocumentPreview = ({
         / {totalPages}
       </section>
 
-      <div className="col-span-2 w-full">
+      <div
+        className="col-span-2 w-full"
+        style={{
+          border: "1px #98A0B2 solid",
+          borderRadius: "8px",
+          marginLeft: "40px",
+        }}
+      >
         {withDrop ? (
           <Drop
             pdf={pdf}

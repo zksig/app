@@ -44,18 +44,7 @@ const Drop = ({
     [pdf]
   );
 
-  return (
-    <div
-      ref={drop}
-      style={{
-        border: "1px #98A0B2 solid",
-        borderRadius: "8px",
-        marginLeft: "40px",
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div ref={drop}>{children}</div>;
 };
 
 export default Drop;
