@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import Link from "next/link";
 import { Agreement } from "../../services/digitalSignatures";
 import { colorByStatus, statusTitle } from "../../utils/ui";
@@ -10,7 +11,7 @@ export default function AgreementList({
 }) {
   const agreementsDisplay = agreements.map((agreement) => (
     <li key={agreement.index.toString()}>
-      <Link href={`/agreements/${agreement.index}`}>
+      <Link href={`/agreements/${agreement.owner}/${agreement.index}`}>
         <a
           className="m-2 flex items-center gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"
           href={`/agreements/${agreement.index}`}
@@ -18,11 +19,16 @@ export default function AgreementList({
           <section className="basis-2/5">
             <p className="font-semibold">{agreement.identifier}</p>
             <p>{agreement.cid}</p>
-            <Badge
-              className="w-36"
-              color={colorByStatus[agreement.status]}
-              text={statusTitle[agreement.status]}
-            />
+            <div className="flex gap-1">
+              <Badge
+                className="w-36"
+                color={colorByStatus[agreement.status]}
+                text={statusTitle[agreement.status]}
+              />
+              {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
+                <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
+              ) : null}
+            </div>
           </section>
           <section className="flex grow">
             <div className="mb-4 h-1.5 w-full rounded-full bg-slate-600">

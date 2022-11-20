@@ -15,7 +15,7 @@ export const config = {
 
 const router = nextConnect();
 
-router.post(upload.single("pdf"), async (req, res) => {
+router.post(upload.single("file"), async (req, res) => {
   try {
     if (!req.file) throw new HttpError("Error parsing file", 400);
 

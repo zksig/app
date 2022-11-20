@@ -25,6 +25,34 @@ export const downloadAndDecrypt = async ({
   return pdf;
 };
 
+export const pinFile = async ({
+  file,
+  name,
+}: {
+  file: Uint8Array;
+  name: string;
+}) => {
+  const { root, car } = await packToBlob({
+    input: file,
+    blockstore: new MemoryBlockStore(),
+    wrapWithDirectory: false,
+  });
+
+  const fd = new FormData();
+  fd.append("file", car, name);
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: fd,
+  });
+
+  if (!res.ok) {
+    throw new Error("Unable to pin file to IPFS");
+  }
+
+  return root.toV1().toString();
+};
+
 export const encryptAgreementAndPin = async ({
   pdf,
   name,
@@ -40,23 +68,5 @@ export const encryptAgreementAndPin = async ({
     encryptionPWBytes.slice(0, 32)
   );
 
-  const { root, car } = await packToBlob({
-    input: encrypted,
-    blockstore: new MemoryBlockStore(),
-    wrapWithDirectory: false,
-  });
-
-  const fd = new FormData();
-  fd.append("pdf", car, name);
-
-  const res = await fetch("/api/upload", {
-    method: "POST",
-    body: fd,
-  });
-
-  if (!res.ok) {
-    throw new Error("Unable to pin agreement to IPFS");
-  }
-
-  return root.toV1().toString();
+  return pinFile({ file: encrypted, name });
 };
