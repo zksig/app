@@ -1,6 +1,11 @@
 import { useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { useDrag } from "react-dnd";
+import { Box, Grid, IconButton, TextField } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import CheckIcon from "@mui/icons-material/Check";
+import OpenWithRoundedIcon from "@mui/icons-material/OpenWithRounded";
+import { classes } from "./styles";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -17,7 +22,7 @@ const Signature = ({
   title: string;
   onSignerChange: (text: string) => void;
 }) => {
-  const [editing, setEditing] = useState(true);
+  const [editing, setEditing] = useState(false);
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: "signature",
@@ -28,63 +33,52 @@ const Signature = ({
   );
 
   return (
-    <div className="mt-2 flex items-center gap-2">
+    <Grid container spacing={2}>
       {editing ? (
-        <>
-          <input
-            style={{ fontSize: "14px", width: "100px" }}
-            value={title}
-            onChange={({ target }) => onSignerChange(target.value)}
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-6 w-6"
-            onClick={() => setEditing(false)}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </svg>
-        </>
+        <Grid item xs={12} ref={drag}>
+          <Grid container spacing={0} sx={classes.signatureContainer}>
+            <Grid item xs={10}>
+              <TextField
+                label="Signer Address"
+                onChange={({ target }) => onSignerChange(target.value)}
+                size="small"
+                value={title}
+                fullWidth
+                sx={classes.textField}
+                inputProps={{
+                  style: {
+                    boxShadow: "none",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <IconButton color="primary" aria-label="add signer">
+                <CheckIcon onClick={() => setEditing(false)} />
+              </IconButton>
+            </Grid>
+          </Grid>
+        </Grid>
       ) : (
-        <>
-          <div
-            ref={drag}
-            className="rounded bg-purple-500 px-2 text-center"
-            style={{
-              fontSize: "14px",
-              width: "100px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {title}
-          </div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-6 w-6"
-            onClick={() => setEditing(true)}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-            />
-          </svg>
-        </>
+        <Grid item xs={12} ref={drag}>
+          <Box sx={classes.signerBox}>
+            <Grid container spacing={0} sx={classes.signatureContainer}>
+              <Grid item xs={10} sx={{ display: "flex", alignItems: "center" }}>
+                {title}
+              </Grid>
+              <Grid item xs={2} sx={{ display: "flex" }}>
+                <IconButton color="secondary" aria-label="add signer">
+                  <EditIcon onClick={() => setEditing(true)} />
+                </IconButton>
+                <IconButton color="secondary" aria-label="drop signature">
+                  <OpenWithRoundedIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Box>
+        </Grid>
       )}
-    </div>
+    </Grid>
   );
 };
 

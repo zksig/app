@@ -20,7 +20,7 @@ export default function Stepper({
     } else if (currentStep === index) {
       return "border-fuchsia-500 bg-fuchsia-500 text-white";
     } else {
-      return "border-gray-300";
+      return "border-gray-400";
     }
   };
 
@@ -29,7 +29,7 @@ export default function Stepper({
     if (completedStep) {
       return "border-slate-900";
     } else {
-      return "border-gray-300";
+      return "border-gray-400";
     }
   };
 
@@ -39,7 +39,7 @@ export default function Stepper({
         {steps.map((step, index) => {
           return (
             <React.Fragment key={`step-${index}`}>
-              <div className="relative flex  items-center text-fuchsia-500">
+              <div className="relative flex  items-center text-gray-400">
                 <div
                   className={`flex h-12 w-12  items-center justify-center rounded-full border-2 ${getCircleColors(
                     step,

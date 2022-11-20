@@ -1,3 +1,4 @@
+import { Grid } from "@mui/material";
 import * as pdfjsLib from "pdfjs-dist";
 import iconNames from "../../common/icons";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
@@ -16,7 +17,7 @@ const ConfigureAgreement = ({
   pdf?: Uint8Array;
   onChangePdf: (file: File) => void;
 }) => (
-  <div>
+  <Grid item xs={12}>
     <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
       <div className="space-y-1 text-center">
         {pdf ? (
@@ -47,7 +48,7 @@ const ConfigureAgreement = ({
             <div className="flex text-sm text-gray-600">
               <label
                 htmlFor="file-upload"
-                className="relative cursor-pointer rounded-md bg-white font-medium text-purple-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-purple-500 focus-within:ring-offset-2 hover:text-purple-500"
+                className="relative cursor-pointer rounded-md bg-white font-medium text-gray-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-gray-400 focus-within:ring-offset-2 hover:text-gray-400"
               >
                 <span>Upload a PDF Agreement</span>
                 <input
@@ -66,6 +67,6 @@ const ConfigureAgreement = ({
         )}
       </div>
     </div>
-  </div>
+  </Grid>
 );
 export default ConfigureAgreement;

@@ -4,7 +4,6 @@ import { PDFDocument } from "pdf-lib";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { useIPFS } from "../../../providers/IPFSProvider";
-import Button from "../../common/Button";
 import { encryptAgreementAndPin } from "../../../utils/files";
 import {
   createAgreement,
@@ -15,6 +14,10 @@ import Stepper from "../../common/Stepper";
 import ConfigureAgreement from "./ConfigureAgreement";
 import DocumentPreview from "./DocumentPreview";
 import AddSignatures from "./AddSignatures";
+import { Button, Grid, TextField, Typography } from "@mui/material";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { classes } from "./styles";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -138,60 +141,77 @@ const NewCreateAgreement = () => {
   };
 
   const content = [
-    <div className="grid grid-cols-5 gap-20" key={"upload-document"}>
-      <div className="xs:col-span-5 md:col-span-2">
-        <label
-          htmlFor="first-name"
-          className="block text-sm font-medium text-gray-700"
+    <Grid container spacing={2} key={"upload-document"}>
+      <Grid item xs={12}>
+        <Typography
+          sx={{
+            fontSize: "16px",
+            fontWeight: 500,
+            color: "#2E3855",
+            marginBottom: "8px",
+          }}
         >
-          Agreement Identifier
-        </label>
-        <input
-          type="text"
-          className="mt-1 mb-4 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          value={identifier}
+          First Step:
+        </Typography>
+        <Typography sx={{ fontSize: "14px", color: "#98A0B2" }}>
+          Upload the document you will need to be signed. This document has to
+          be of PDF format. Make sure you give your Agreement a name and click
+          on “Continue” when you are ready.
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        <TextField
+          label="Agreement Name"
           onChange={({ target }) => setIdentifier(target.value)}
+          size="small"
+          value={identifier}
+          fullWidth
+          sx={classes.textField}
+          inputProps={{
+            style: {
+              boxShadow: "none",
+            },
+          }}
         />
-        <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
+      </Grid>
+      <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
+      <Grid item xs={12}>
         <Button
-          color="bg-fuchsia-500"
-          hoverColor="bg-fuchsia-400"
+          variant="contained"
           disabled={!!loading || !pdf}
-          text={loading ? "Processing..." : "Continue"}
           onClick={() => setCurrentStep(1)}
-        />
-      </div>
-      {!!pdf && (
-        <div className="xs:col-span-5 rounded-md bg-slate-50 p-10 md:col-span-3">
-          <DocumentPreview pdf={pdf} />
-        </div>
-      )}
-    </div>,
+          sx={{ textDecoration: "none", textTransform: "none" }}
+        >
+          {loading ? "Processing..." : "Continue"}
+        </Button>
+      </Grid>
+    </Grid>,
     <AddSignatures
       key={"add-signatures"}
-      pdf={pdf}
       signers={pdfDescription.map((signer) => signer.identifier)}
       onAddSigner={handleAddSigner}
       onUpdateSigner={handleUpdateSigner}
       setCurrentStep={setCurrentStep}
-      onAddField={handleNewField}
     />,
     <Button
+      variant="contained"
       key={"review"}
-      className="m-auto"
-      color="bg-fuchsia-500"
-      hoverColor="bg-fuchsia-400"
-      text={"Agree and Continue"}
       onClick={handleCreateAgreement}
-    />,
+      sx={{ textDecoration: "none", textTransform: "none" }}
+    >
+      Agree and Continue
+    </Button>,
   ];
 
   return (
-    <div>
-      <h2 className="mb-8 text-2xl font-semibold text-gray-500">
-        Create New Agreement
-      </h2>
-      <div className="m-auto w-9/12">
+    <Grid
+      container
+      spacing={2}
+      sx={{ display: "flex", justifyContent: "center" }}
+    >
+      <Grid item xs={3} />
+
+      <Grid item xs={6}>
         <Stepper
           steps={[
             {
@@ -203,15 +223,47 @@ const NewCreateAgreement = () => {
               title: "Add Signers",
             },
             {
-              icon: "upload",
+              icon: "review",
               title: "Review",
             },
           ]}
           currentStep={currentStep}
         />
-      </div>
-      {content[currentStep]}
-    </div>
+      </Grid>
+      <Grid item xs={3} />
+      <Grid item xs={12}>
+        <DndProvider backend={HTML5Backend}>
+          <Grid container spacing={2} sx={{ marginTop: "16px" }}>
+            <Grid item xs={2} />
+            <Grid item xs={4}>
+              {content[currentStep]}
+            </Grid>
+            {!!pdf ? (
+              <>
+                <Grid
+                  item
+                  xs={4}
+                  sx={{
+                    border: "1px #98A0B2 solid",
+                    borderRadius: "8px",
+                    marginLeft: "40px",
+                  }}
+                >
+                  <DocumentPreview
+                    pdf={pdf}
+                    withDrop={currentStep === 1}
+                    onAddField={handleNewField}
+                  />
+                </Grid>
+                <Grid item xs={2} />
+              </>
+            ) : (
+              <Grid item xs={6} />
+            )}
+          </Grid>
+        </DndProvider>
+      </Grid>
+    </Grid>
   );
 };
 
