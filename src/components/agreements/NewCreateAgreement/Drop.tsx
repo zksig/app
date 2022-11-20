@@ -30,7 +30,12 @@ const Drop = ({
         if (!pdf) return;
         const rect = canvas.current!.getBoundingClientRect();
         console.log(rect, monitor.getSourceClientOffset());
-        const x = monitor.getSourceClientOffset()!.x;
+        const x = monitor.getSourceClientOffset()!.x - rect.left;
+        const documentBottom = rect.top + rect.height;
+
+        // getSourceClientOffset.y = distance from top of viewport to top of dropped item preview before dropping
+        // getSourceClientOffset.x = distance from left of viewport to left side of dropped item preview before dropping
+
         const y =
           rect.height - (monitor.getSourceClientOffset()!.y - rect.top) - 20;
 
@@ -40,7 +45,18 @@ const Drop = ({
     [pdf]
   );
 
-  return <div ref={drop}>{children}</div>;
+  return (
+    <div
+      ref={drop}
+      style={{
+        border: "1px #98A0B2 solid",
+        borderRadius: "8px",
+        marginLeft: "40px",
+      }}
+    >
+      {children}
+    </div>
+  );
 };
 
 export default Drop;

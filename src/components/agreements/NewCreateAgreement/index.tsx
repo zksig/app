@@ -92,9 +92,16 @@ const NewCreateAgreement = () => {
     const fieldName = Date.now().toString();
     const field = doc.getForm().createTextField(Date.now().toString());
     field.setText(`${identifier} signature`);
+    const currentPage = doc.getPage(page - 1);
+    const viewportDocument = document.getElementById("canvas");
+    //find out how much bigger the actual document is than the preview shown in the page so we can adjust the coordinates with the same proportion
+    const adjustedHeight =
+      currentPage.getHeight() / (viewportDocument?.offsetHeight || 1);
+    const adjustedWidth =
+      currentPage.getWidth() / (viewportDocument?.offsetWidth || 1);
     field.addToPage(doc.getPage(page - 1), {
-      x,
-      y,
+      x: x * adjustedWidth,
+      y: y * adjustedHeight,
       width: 100,
       height: 14,
     });
@@ -241,15 +248,7 @@ const NewCreateAgreement = () => {
             </Grid>
             {!!pdf ? (
               <>
-                <Grid
-                  item
-                  xs={4}
-                  sx={{
-                    border: "1px #98A0B2 solid",
-                    borderRadius: "8px",
-                    marginLeft: "40px",
-                  }}
-                >
+                <Grid item xs={4}>
                   <DocumentPreview
                     pdf={pdf}
                     withDrop={currentStep === 1}

@@ -60,11 +60,14 @@ const DocumentPreview = ({
         {withDrop ? (
           <Drop
             pdf={pdf}
-            onAddField={onAddField}
+            onAddField={(first: any) => {
+              console.log({ first });
+              onAddField(first);
+            }}
             currentPage={currentPage}
             canvas={canvas}
           >
-            <canvas ref={canvas} className="w-full" />
+            <canvas ref={canvas} className="w-full" id="canvas" />
           </Drop>
         ) : (
           <canvas ref={canvas} className="w-full" />
