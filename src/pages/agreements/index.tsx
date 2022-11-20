@@ -21,9 +21,6 @@ const AgreementsPage: NextPage = () => {
         <Link href="/agreements/create">
           <Button text="Create Agreement" iconName="add" className="mr-16" />
         </Link>
-        <Link href="/agreements/create-new">
-          <Button text="(new) Create Agreement" iconName="add" />
-        </Link>
       </div>
       <AgreementList agreements={agreements} />
     </>
