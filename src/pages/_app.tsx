@@ -7,10 +7,12 @@ import "./styles/globals.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import SidebarLayout from "../components/layouts/SidebarLayout";
 import { FilecoinProvider } from "../providers/FilecoinProvider";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "../utils/theme";
 
 const App: FC<AppProps> = ({ Component, pageProps }) => {
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <IPFSProvider>
         <FilecoinProvider>
           <SidebarLayout>
@@ -19,7 +21,7 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
         </FilecoinProvider>
       </IPFSProvider>
       <ToastContainer />
-    </>
+    </ThemeProvider>
   );
 };
 

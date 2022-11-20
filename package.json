@@ -9,10 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@fontsource/inter": "^4.5.14",
     "@headlessui/react": "^1.7.2",
     "@headlessui/tailwindcss": "^0.1.1",
     "@heroicons/react": "^2.0.11",
     "@ipld/car": "^5.0.0",
+    "@mui/icons-material": "^5.10.14",
+    "@mui/material": "^5.10.14",
     "@project-serum/anchor": "^0.25.0",
     "@solana/wallet-adapter-base": "^0.9.18",
     "@solana/wallet-adapter-phantom": "^0.9.17",
