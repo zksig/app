@@ -8,6 +8,7 @@ import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
 import { Agreement, signMessage } from "../../services/digitalSignatures";
+import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 
 export default function AgreementDetails({
   agreement,
@@ -139,7 +140,19 @@ export default function AgreementDetails({
           color={colorByStatus[agreement.status]}
         />
         {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
-          <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
+          <>
+            <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
+            <button
+              className="flex items-center gap-1"
+              onClick={() => {
+                navigator.clipboard.writeText(agreement.nftContractAddress!);
+                toast.success("NFT Address stored in clipboard");
+              }}
+            >
+              <span>{agreement.nftContractAddress}</span>
+              <ClipboardDocumentIcon className="w-6" />
+            </button>
+          </>
         ) : null}
       </div>
       <div className="my-6">
