@@ -9,7 +9,7 @@ import {
   createAgreement,
   getAddress,
   signMessage,
-} from "../../../services/filecoin";
+} from "../../../services/digitalSignatures";
 import Stepper from "../../common/Stepper";
 import ConfigureAgreement from "./ConfigureAgreement";
 import DocumentPreview from "./DocumentPreview";
@@ -63,6 +63,7 @@ const NewCreateAgreement = () => {
         encryptedCid,
         descriptionCid: descriptionIPFS.cid.toV1().toString(),
         description: pdfDescription,
+        withNFT: true,
       });
 
       router.push(`/agreements/${id}`);
