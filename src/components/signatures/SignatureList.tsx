@@ -15,7 +15,7 @@ export default function SignatureList({
   signatures: SignaturePacket[];
 }) {
   const signaturesDisplay = signatures.map((signature) => (
-    <li key={signature.index}>
+    <li key={signature.index.toString()}>
       <Link href={`/signatures/${signature.index}`}>
         <a
           className="m-2 flex items-center justify-between gap-20 rounded p-4 outline outline-dashed outline-1 outline-purple-200 hover:bg-purple-50"

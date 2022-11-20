@@ -1,4 +1,7 @@
-import type { Agreement, SignatureConstraint } from "../../services/digitalSignatures";
+import type {
+  Agreement,
+  SignatureConstraint,
+} from "../../services/digitalSignatures";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";
@@ -49,12 +52,20 @@ export default function Sign({
         <h2 className="text-2xl">Sign:</h2>
         <h3 className="text-xl font-bold">{signature.identifier}</h3>
         <Badge
-          color={signature.used ? "bg-teal-500" : "bg-yellow-500"}
-          text={signature.used ? "Signed" : "Unsigned"}
+          color={
+            signature.allowedToUse.eq(signature.totalUsed)
+              ? "bg-teal-500"
+              : "bg-yellow-500"
+          }
+          text={
+            signature.allowedToUse.eq(signature.totalUsed)
+              ? "Signed"
+              : "Unsigned"
+          }
         />
       </div>
       <div className="flex justify-end">
-        {!signature.used ? (
+        {!signature.allowedToUse.eq(signature.totalUsed) ? (
           <Button
             text="Sign"
             onClick={() => onSign()}

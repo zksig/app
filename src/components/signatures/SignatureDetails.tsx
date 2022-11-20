@@ -66,8 +66,16 @@ export default function SignatureDetails({
           </p>
           <Badge
             className="w-36"
-            color={constraint.used ? "bg-teal-500" : "bg-yellow-500"}
-            text={constraint.used ? "Signed" : "Unsigned"}
+            color={
+              constraint.allowedToUse.eq(constraint.totalUsed)
+                ? "bg-teal-500"
+                : "bg-yellow-500"
+            }
+            text={
+              constraint.allowedToUse.eq(constraint.totalUsed)
+                ? "Signed"
+                : "Unsigned"
+            }
           />
         </section>
         <section className="">
