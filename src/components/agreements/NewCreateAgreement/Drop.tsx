@@ -29,7 +29,12 @@ const Drop = ({
       drop: async (item: { title: string }, monitor) => {
         if (!pdf) return;
         const rect = canvas.current!.getBoundingClientRect();
-        const x = monitor.getSourceClientOffset()!.x;
+        console.log(rect, monitor.getSourceClientOffset());
+        const x = monitor.getSourceClientOffset()!.x - rect.left;
+
+        // getSourceClientOffset.y = distance from top of viewport to top of dropped item preview before dropping
+        // getSourceClientOffset.x = distance from left of viewport to left side of dropped item preview before dropping
+
         const y =
           rect.height - (monitor.getSourceClientOffset()!.y - rect.top) - 20;
 

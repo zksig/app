@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
-import { useDrag } from "react-dnd";
+import { DragSourceMonitor, useDrag, useDragLayer } from "react-dnd";
 import { Box, Grid, IconButton, TextField } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
@@ -27,7 +27,9 @@ const Signature = ({
     () => ({
       type: "signature",
       item: () => ({ title }),
-      collect: (monitor) => ({ isDragging: !!monitor.isDragging() }),
+      collect: (monitor: DragSourceMonitor) => {
+        return { isDragging: !!monitor.isDragging() };
+      },
     }),
     [title]
   );
@@ -35,7 +37,7 @@ const Signature = ({
   return (
     <Grid container spacing={2}>
       {editing ? (
-        <Grid item xs={12} ref={drag}>
+        <Grid item xs={12}>
           <Grid container spacing={0} sx={classes.signatureContainer}>
             <Grid item xs={10}>
               <TextField
@@ -60,6 +62,17 @@ const Signature = ({
           </Grid>
         </Grid>
       ) : (
+        // Coordinates working easier with something this small but its not optimal
+        //   <Grid
+        //   item
+        //   xs={2}
+        //   ref={drag}
+        //   sx={{ height: "14px", width: "100px", fontSize: "8px" }}
+        // >
+        //   <span style={{ width: "100%" }}>
+        //     {title}
+        //   </span>
+        // </Grid>
         <Grid item xs={12} ref={drag}>
           <Box sx={classes.signerBox}>
             <Grid container spacing={0} sx={classes.signatureContainer}>
