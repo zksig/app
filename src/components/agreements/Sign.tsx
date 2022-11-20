@@ -1,4 +1,4 @@
-import type { Agreement, SignatureConstraint } from "../../services/filecoin";
+import type { Agreement, SignatureConstraint } from "../../services/digitalSignatures";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";

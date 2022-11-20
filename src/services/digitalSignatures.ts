@@ -1,5 +1,6 @@
 import { BigNumber, constants, Contract, providers } from "ethers";
-import DigitalSignature from "../utils/DigitalSignature.json";
+import DigitalSignature from "./contracts/DigitalSignature.json";
+import { getProvider } from "./evm";
 
 export type Profile = {
   totalAgreements: BigNumber;
@@ -40,21 +41,11 @@ export type SignaturePacket = {
   blockNumber: number;
 };
 
-export const getProvider = () => {
-  const provider = new providers.Web3Provider(
-    typeof window !== "undefined"
-      ? window.ethereum
-      : new providers.JsonRpcProvider("https://wallaby.node.glif.io/rpc/v0")
-  );
-
-  return provider;
-};
-
 export const getContract = () => {
   const provider = getProvider();
   const contract = new Contract(
     process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0x55A66ED1B6949Fa0A9F282b1c80E3c983E52f5Aa",
+      "0xAe6Aeb61b8703835E43F811F7CeeE93A01f58e32",
     DigitalSignature.abi,
     provider
   );
@@ -76,6 +67,7 @@ export const getAddress = async () => {
 export const getIsConnected = async () => {
   return (await getProvider().send("eth_accounts", [])).length > 0;
 };
+
 export const signMessage = async (message: string) => {
   return Uint8Array.from(
     Buffer.from(await getProvider().getSigner().signMessage(message))
@@ -92,12 +84,14 @@ export const createAgreement = async ({
   encryptedCid,
   descriptionCid,
   description,
+  withNFT,
 }: {
   identifier: string;
   cid: string;
   encryptedCid: string;
   descriptionCid: string;
   description: { identifier: string; fields: string[] }[];
+  withNFT: boolean;
 }) => {
   const constraints = description.map(({ identifier }) => ({
     identifier,
@@ -112,7 +106,7 @@ export const createAgreement = async ({
       cid,
       encryptedCid,
       descriptionCid,
-      withNFT: false,
+      withNFT,
       nftImageCid: "",
       constraints,
     })
@@ -150,11 +144,12 @@ export const sign = async ({
   encryptedCid: string;
 }) => {
   return (
-    await getContract().sign(
-      agreement.owner,
-      agreement.index,
+    await getContract().sign({
+      agreementOwner: agreement.owner,
+      agreementIndex: agreement.index,
       identifier,
-      encryptedCid
-    )
+      encryptedCid,
+      nftTokenURI: "4234234324",
+    })
   ).wait(1);
 };

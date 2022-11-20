@@ -7,7 +7,7 @@ import {
   SignaturePacket,
   getAgreement,
   getSignature,
-} from "../../services/filecoin";
+} from "../../services/digitalSignatures";
 
 const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();

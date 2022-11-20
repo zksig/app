@@ -1,13 +1,13 @@
-import { Agreement, signMessage } from "../../services/filecoin";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { constants, ethers } from "ethers";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Badge from "../common/Badge";
 import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
-import { constants } from "ethers";
+import { Agreement, signMessage } from "../../services/digitalSignatures";
 
 export default function AgreementDetails({
   agreement,
@@ -58,8 +58,16 @@ export default function AgreementDetails({
           </p>
           <Badge
             className="w-36"
-            color={constraint.used ? "bg-teal-500" : "bg-yellow-500"}
-            text={constraint.used ? "Signed" : "Unsigned"}
+            color={
+              constraint.allowedToUse === constraint.totalUsed
+                ? "bg-teal-500"
+                : "bg-yellow-500"
+            }
+            text={
+              constraint.allowedToUse === constraint.totalUsed
+                ? "Signed"
+                : "Unsigned"
+            }
           />
         </section>
         <section className="">
@@ -73,7 +81,7 @@ export default function AgreementDetails({
                   Buffer.from(encryptionPWBytes!).toString("base64")
                 );
                 await window.navigator.clipboard.writeText(
-                  `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.index}/sign/${constraint.identifier}?pw=${pw}`
+                  `${process.env.NEXT_PUBLIC_HOST}/agreements/${agreement.owner}/${agreement.index}/sign/${constraint.identifier}?pw=${pw}`
                 );
                 toast.info("Link copied to clipboard");
               }}
@@ -130,6 +138,9 @@ export default function AgreementDetails({
           text={statusTitle[agreement.status]}
           color={colorByStatus[agreement.status]}
         />
+        {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
+          <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
+        ) : null}
       </div>
       <div className="my-6">
         <div className="h-1.5 w-full rounded-full bg-slate-600">

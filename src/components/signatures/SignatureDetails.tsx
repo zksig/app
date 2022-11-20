@@ -2,7 +2,7 @@ import {
   Agreement,
   SignaturePacket,
   signMessage,
-} from "../../services/filecoin";
+} from "../../services/digitalSignatures";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";

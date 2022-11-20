@@ -7,13 +7,13 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/router";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Button from "../common/Button";
-import { encryptAgreementAndPin } from "../../utils/files";
+import { encryptAgreementAndPin, pinFile } from "../../utils/files";
 import {
   createAgreement,
   getAddress,
   signMessage,
-} from "../../services/filecoin";
-import { Tab } from "@headlessui/react";
+} from "../../services/digitalSignatures";
+import { Switch, Tab } from "@headlessui/react";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -309,6 +309,8 @@ const CreateAgreement = () => {
   const ipfs = useIPFS();
   const [selectedTab, setSelectedTab] = useState(0);
   const [identifier, setIdentifier] = useState("");
+  const [makeNft, setMakeNft] = useState(true);
+  const [nftImagePage, setNftImagePage] = useState(0);
   const [pdf, setPdf] = useState<Uint8Array>();
   const [loading, setLoading] = useState<boolean>(false);
   const [pdfDescription, setPdfDescription] = useState<
@@ -324,22 +326,28 @@ const CreateAgreement = () => {
       const encryptionPWBytes = await signMessage(
         `Encrypt PDF for ${identifier}`
       );
-      const encryptedCid = await encryptAgreementAndPin({
-        pdf,
-        name: `${await getAddress()}: ${identifier}`,
-        encryptionPWBytes,
-      });
-      const [pdfIPFS, descriptionIPFS] = await Promise.all([
+      const address = await getAddress();
+
+      const [encryptedCid, descriptionCid, pdfIPFS] = await Promise.all([
+        encryptAgreementAndPin({
+          pdf,
+          name: `${address}: ${identifier}`,
+          encryptionPWBytes,
+        }),
+        pinFile({
+          file: Buffer.from(JSON.stringify(pdfDescription)),
+          name: `${address}: ${identifier} Description`,
+        }),
         ipfs.add(pdf, { wrapWithDirectory: false }),
-        ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
       ]);
 
       await createAgreement({
         identifier,
-        cid: pdfIPFS.cid.toV1().toString(),
         encryptedCid,
-        descriptionCid: descriptionIPFS.cid.toV1().toString(),
+        descriptionCid,
+        cid: pdfIPFS.cid.toV1().toString(),
         description: pdfDescription,
+        withNFT: makeNft,
       });
 
       router.push("/agreements");
@@ -462,10 +470,10 @@ const CreateAgreement = () => {
           </Tab.List>
           <Tab.Panels>
             <Tab.Panel>
-              <div className="col-span-6 sm:col-span-3">
+              <div className="col-span-6 my-2 sm:col-span-3">
                 <label
                   htmlFor="first-name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-semibold text-slate-700"
                 >
                   Agreement Identifier
                 </label>
@@ -475,6 +483,23 @@ const CreateAgreement = () => {
                   value={identifier}
                   onChange={({ target }) => setIdentifier(target.value)}
                 />
+              </div>
+              <div className="my-2">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Mint signature NFTs
+                </label>
+                <Switch
+                  checked={makeNft}
+                  onChange={setMakeNft}
+                  className={`${makeNft ? "bg-purple-500" : "bg-slate-300"}
+          relative inline-flex h-[38px] w-[74px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`${makeNft ? "translate-x-9" : "translate-x-0"}
+            pointer-events-none inline-block h-[34px] w-[34px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+                  />
+                </Switch>
               </div>
               <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
               <div className="flex justify-end">

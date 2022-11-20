@@ -1,19 +1,19 @@
 import type { NextPage } from "next";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Sign from "../../../../components/agreements/Sign";
 import { toast } from "react-toastify";
-import { useIPFS } from "../../../../providers/IPFSProvider";
+import { useIPFS } from "../../../../../providers/IPFSProvider";
+import Sign from "../../../../../components/agreements/Sign";
 import {
   downloadAndDecrypt,
   encryptAgreementAndPin,
-} from "../../../../utils/files";
+} from "../../../../../utils/files";
 import {
   Agreement,
   getAgreement,
   sign,
   signMessage,
-} from "../../../../services/filecoin";
+} from "../../../../../services/digitalSignatures";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();
@@ -28,8 +28,8 @@ const SignAgreementPage: NextPage = () => {
   );
 
   const refetchAgreement = useCallback(async () => {
-    setAgreement(await getAgreement(index));
-  }, [router.query.address]);
+    setAgreement(await getAgreement(index, router.query.owner as string));
+  }, [router.query.owner, index]);
 
   const handleSign = useCallback(async () => {
     try {
