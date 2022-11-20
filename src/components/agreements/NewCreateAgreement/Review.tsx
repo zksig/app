@@ -15,10 +15,12 @@ const Review = ({
   signers,
   handleCreateAgreement,
   identifier,
+  loading,
 }: {
   signers: any;
   handleCreateAgreement: any;
   identifier: string;
+  loading: boolean;
 }) => {
   return (
     <Grid container spacing={2}>
@@ -70,7 +72,7 @@ const Review = ({
           onClick={handleCreateAgreement}
           sx={{ textDecoration: "none", textTransform: "none" }}
         >
-          Agree and Continue
+          {loading ? "Processing..." : "Agree and Continue"}
         </Button>
       </Grid>
     </Grid>
