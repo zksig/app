@@ -59,12 +59,12 @@ export default function AgreementDetails({
           <Badge
             className="w-36"
             color={
-              constraint.allowedToUse === constraint.totalUsed
+              constraint.allowedToUse.eq(constraint.totalUsed)
                 ? "bg-teal-500"
                 : "bg-yellow-500"
             }
             text={
-              constraint.allowedToUse === constraint.totalUsed
+              constraint.allowedToUse.eq(constraint.totalUsed)
                 ? "Signed"
                 : "Unsigned"
             }

@@ -6,8 +6,6 @@ import {
   Agreement,
   getAgreement,
 } from "../../../../services/digitalSignatures";
-import Button from "../../../../components/common/Button";
-import { deployProviderNFTDealClient } from "../../../../services/filecoinDealClients";
 
 const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();
@@ -19,20 +17,7 @@ const AgreementDetailsPage: NextPage = () => {
     })();
   }, [router]);
 
-  return (
-    <>
-      {agreement ? (
-        <>
-          {" "}
-          <Button
-            text="test"
-            onClick={() => deployProviderNFTDealClient(agreement)}
-          />
-          <AgreementDetails agreement={agreement} />
-        </>
-      ) : null}
-    </>
-  );
+  return <>{agreement ? <AgreementDetails agreement={agreement} /> : null}</>;
 };
 
 export default AgreementDetailsPage;
