@@ -93,14 +93,12 @@ export const createAgreement = async ({
   description: { identifier: string; fields: string[] }[];
   withNFT: boolean;
 }) => {
-  console.log("HERE");
   const constraints = description.map(({ identifier }) => ({
     identifier,
     signer: constants.AddressZero,
     totalUsed: 0,
     allowedToUse: 1,
   }));
-  console.log("ABOUT TO");
   return (
     await getContract().createAgreement({
       identifier,

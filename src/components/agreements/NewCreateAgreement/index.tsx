@@ -57,7 +57,6 @@ const NewCreateAgreement = () => {
         ipfs.add(pdf, { wrapWithDirectory: false }),
         ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
       ]);
-      console.log("BEFORE");
       const id = await createAgreement({
         identifier,
         cid: pdfIPFS.cid.toV1().toString(),
