@@ -68,7 +68,6 @@ const DocumentPreview = ({
           <Drop
             pdf={pdf}
             onAddField={(first: any) => {
-              console.log({ first });
               onAddField(first);
             }}
             currentPage={currentPage}

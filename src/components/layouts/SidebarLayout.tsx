@@ -124,6 +124,7 @@ export default function SidebarLayout({
             height: "calc(100vh - 120px)",
             borderRadius: "50px 0 0 0",
             p: "60px 80px",
+            overflowY: "scroll",
           }}
         >
           {children}

@@ -18,7 +18,7 @@ const AgreementDetailsPage: NextPage = () => {
     (async () => {
       const signature = await getSignature(Number(router.query.index));
       const agreement = await getAgreement(
-        signature.index.toNumber(),
+        signature.agreementIndex.toNumber(),
         signature.agreementOwner
       );
 
