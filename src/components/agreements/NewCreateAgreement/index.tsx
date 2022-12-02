@@ -30,6 +30,8 @@ type AddFieldOptions = {
 
 const NewCreateAgreement = () => {
   const router = useRouter();
+  const docSignatureWidth = 100;
+  const docSignatureHeight = 14;
   const ipfs = useIPFS();
   const [identifier, setIdentifier] = useState("");
   const [pdf, setPdf] = useState<Uint8Array>();
@@ -88,7 +90,6 @@ const NewCreateAgreement = () => {
   }) => {
     if (!pdf) return;
     const doc = await PDFDocument.load(pdf);
-
     const fieldName = Date.now().toString();
     const field = doc.getForm().createTextField(Date.now().toString());
     field.setText(`${identifier} signature`);
@@ -99,11 +100,12 @@ const NewCreateAgreement = () => {
       currentPage.getHeight() / (viewportDocument?.offsetHeight || 1);
     const adjustedWidth =
       currentPage.getWidth() / (viewportDocument?.offsetWidth || 1);
+
     field.addToPage(doc.getPage(page - 1), {
       x: x * adjustedWidth,
       y: y * adjustedHeight,
-      width: 100,
-      height: 14,
+      width: docSignatureWidth * adjustedWidth,
+      height: docSignatureHeight * adjustedHeight,
     });
 
     setPdfDescription((pdfDescription) => {
@@ -253,6 +255,8 @@ const NewCreateAgreement = () => {
                     pdf={pdf}
                     withDrop={currentStep === 1}
                     onAddField={handleNewField}
+                    docSignatureWidth={docSignatureWidth}
+                    docSignatureHeight={docSignatureHeight}
                   />
                 </Grid>
                 <Grid item xs={2} />
