@@ -33,6 +33,10 @@ const routes = [
   },
   {
     title: "Create Agreement",
+    route: "/agreements/create",
+  },
+  {
+    title: "Create Agreement",
     route: "/agreements/create-new",
   },
 ];

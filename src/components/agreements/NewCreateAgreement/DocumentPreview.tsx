@@ -14,14 +14,19 @@ const DocumentPreview = ({
   pdf,
   withDrop,
   onAddField,
+  docSignatureHeight,
+  docSignatureWidth,
 }: {
   pdf?: Uint8Array;
   withDrop?: boolean;
   onAddField?: any;
+  docSignatureHeight: number;
+  docSignatureWidth: number;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [inDropZone, setInDropZone] = useState(false);
 
   useEffect(() => {
     if (!pdf) return;
@@ -59,7 +64,7 @@ const DocumentPreview = ({
       <div
         className="col-span-2 w-full"
         style={{
-          border: "1px #98A0B2 solid",
+          border: `1px #${inDropZone ? "D946EF" : "98A0B2"} solid`,
           borderRadius: "8px",
           marginLeft: "40px",
         }}
@@ -67,11 +72,12 @@ const DocumentPreview = ({
         {withDrop ? (
           <Drop
             pdf={pdf}
-            onAddField={(first: any) => {
-              onAddField(first);
-            }}
+            onAddField={onAddField}
             currentPage={currentPage}
             canvas={canvas}
+            setInDropZone={setInDropZone}
+            docSignatureWidth={docSignatureWidth}
+            docSignatureHeight={docSignatureHeight}
           >
             <canvas ref={canvas} className="w-full" id="canvas" />
           </Drop>
