@@ -73,13 +73,13 @@ const AddSignatures = ({
           <Select
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={sharing}
+            value={sharing || ""}
             label="Sharing Options"
             size="small"
             onChange={({ target }) => setSharing(target.value)}
           >
             <MenuItem value="address">Share via Address</MenuItem>
-            <MenuItem value="url">Share via URL</MenuItem>
+            <MenuItem value="url">Share via URL (coming soon)</MenuItem>
           </Select>
         </FormControl>
         {signers.map((signer, i) => (

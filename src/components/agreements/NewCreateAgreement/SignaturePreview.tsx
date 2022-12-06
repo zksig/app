@@ -9,10 +9,16 @@ type AddFieldOptions = {
   identifier: string;
 };
 
-const SignaturePreview = ({ preview }: { preview: any }) => {
+const SignaturePreview = ({
+  preview,
+  previewImg,
+}: {
+  preview: any;
+  previewImg: string;
+}) => {
   return (
     <div style={{ opacity: 0.5 }}>
-      <DragPreviewImage connect={preview} src={"/draggableBox.png"} />
+      <DragPreviewImage connect={preview} src={previewImg} />
     </div>
   );
 };
