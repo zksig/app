@@ -4,34 +4,23 @@ This is the web application for zksig made with next.js.
 
 ## Getting Started
 
-### Dependencies
+### Setup Metamask
 
-- docker [homebrew install](https://formulae.brew.sh/formula/docker)
-- docker compose [homebrew install](https://formulae.brew.sh/formula/docker-compose)
+- Download the Metamask extension [https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en)
+- create a new wallet
+- Setup Filecoin Wallaby 
+  - goto [https://chainlist.org/](https://chainlist.org/)
+  - search for 'filecoin` and turn on `Testnets`
+  - find `Filecoin - Wallaby testnet`
+  - click the `Connect Wallet` button
+  - click the `Add to Meamask` button
 
-### Startup
+### Add funds
 
-Use `docker-compose up` to start the application. This will:
+- get tFil from the faucet [https://wallaby.network/#faucet](https://wallaby.network/#faucet)
+- copy your address from Metamask
+- paste it into the input box and click send
 
-- start postgres
-- start pgadmin on port 8000
-- start the application on port 3000
+### Start the applicaiton
 
-#### pgadmin
-
-You can use pgadmin to explore the database. Open [http://localhost:8000](http://localhost:8000).
-Login with:
-
-- **Email** dev@zksig.io
-- **Password** d3vzk5!9
-
-The database password is `postgres`
-
-### Developer Accounts
-
-Use the following application login:
-
-- **Email** dev@zksig.io
-- **Password** d3vzk5!9
-
-This will give you access to preloaded data.
+- `yarn dev`

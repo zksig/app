@@ -372,15 +372,31 @@ const CreateAgreement = () => {
   }) => {
     if (!pdf) return;
     const doc = await PDFDocument.load(pdf);
+    const signatureImage = await doc.embedPng(
+      await fetch("/logo_v3.png").then((res) => res.arrayBuffer())
+    );
 
     const fieldName = Date.now().toString();
+    const button = doc
+      .getForm()
+      .createButton(`button-${Date.now().toString()}`);
+    button.addToPage("", doc.getPage(page - 1), {
+      x,
+      y,
+      width: 20,
+      height: 14,
+      borderWidth: 0,
+    });
+    button.setImage(signatureImage);
+
     const field = doc.getForm().createTextField(Date.now().toString());
     field.setText(`${identifier} signature`);
     field.addToPage(doc.getPage(page - 1), {
-      x,
+      x: x + 20,
       y,
-      width: 100,
+      width: 80,
       height: 14,
+      borderWidth: 0,
     });
 
     setPdfDescription((pdfDescription) => {
