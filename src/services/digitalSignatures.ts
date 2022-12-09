@@ -45,7 +45,7 @@ export const getContract = () => {
   const provider = getProvider();
   const contract = new Contract(
     process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0xAe6Aeb61b8703835E43F811F7CeeE93A01f58e32",
+      "0x1E7EF1A8F6b6710c6541dBACf36C4b9173712B6A",
     DigitalSignature.abi,
     provider
   );
