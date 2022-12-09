@@ -38,13 +38,13 @@ const iconNames: Record<string, ReactNode> = {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      stroke-width="1.5"
+      strokeWidth="1.5"
       stroke="currentColor"
       className="mx-auto h-12 w-12 text-gray-400 text-green-500"
     >
       <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         d="M4.5 12.75l6 6 9-13.5"
       />
     </svg>
@@ -57,9 +57,9 @@ const iconNames: Record<string, ReactNode> = {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className="mr-3 h-5 w-5 animate-spin-slow"
     >
       <line x1="12" y1="2" x2="12" y2="6"></line>
@@ -80,9 +80,9 @@ const iconNames: Record<string, ReactNode> = {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <polyline points="9 11 12 14 22 4"></polyline>
       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>

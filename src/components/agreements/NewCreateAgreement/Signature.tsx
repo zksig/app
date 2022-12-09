@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import {
   DragPreviewImage,
@@ -41,6 +41,11 @@ const Signature = ({
     [title]
   );
 
+  useEffect(() => {
+    if (!isDragging) {
+    }
+  }, [isDragging]);
+
   const { itemType, item, initialOffset, currentOffset } = useDragLayer(
     (monitor) => ({
       item: monitor.getItem(),
@@ -80,7 +85,7 @@ const Signature = ({
         </Grid>
       ) : (
         <>
-          <SignaturePreview preview={preview} />
+          <SignaturePreview preview={preview} previewImg="/draggableBox.png" />
           <Grid item xs={12} ref={drag} id="draggable-signature">
             <Box sx={classes.signerBox}>
               <Grid container spacing={0} sx={classes.signatureContainer}>

@@ -10,7 +10,7 @@ This is the web application for zksig made with next.js.
 - create a new wallet
 - Setup Filecoin Wallaby 
   - goto [https://chainlist.org/](https://chainlist.org/)
-  - search for 'filecoin` and turn on `Testnets`
+  - search for `filecoin` and turn on `Testnets`
   - find `Filecoin - Wallaby testnet`
   - click the `Connect Wallet` button
   - click the `Add to Meamask` button

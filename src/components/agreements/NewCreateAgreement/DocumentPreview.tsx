@@ -34,6 +34,7 @@ const DocumentPreview = ({
     (async () => {
       const doc = await pdfjsLib.getDocument(pdf).promise;
       const page = await doc.getPage(currentPage);
+
       const viewport = page.getViewport({ scale: 1 });
 
       const context = canvas.current!.getContext("2d");
@@ -47,7 +48,7 @@ const DocumentPreview = ({
         viewport,
       });
     })();
-  }, [canvas, pdf, currentPage]);
+  }, [canvas, pdf, currentPage, withDrop]);
 
   return (
     <div>
@@ -55,7 +56,7 @@ const DocumentPreview = ({
         <input
           className="w-8 border-none bg-slate-50 p-0"
           type="number"
-          value={currentPage}
+          value={currentPage || 1}
           onChange={({ target }) => setCurrentPage(parseInt(target.value))}
         />{" "}
         / {totalPages}
