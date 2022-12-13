@@ -46,6 +46,7 @@ export type SignaturePacket = {
 const contractAddresses: Record<string, string> = {
   80001: "0xE2a21D2766FA64525CF0f9faA6933fF6fC176550",
   11155111: "0xf8Fffac2f44C66E3aA3011B8B23c173A4d60bf39",
+  31415: "0x0C8a04faB35dc3239AC4e88F26903CF46Bd0bA47",
 };
 
 export const useDigitalSignatureContract = () => {

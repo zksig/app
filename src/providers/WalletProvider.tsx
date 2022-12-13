@@ -1,7 +1,7 @@
 import React from "react";
 import { ConnectKitProvider } from "connectkit";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { polygonMumbai, sepolia } from "wagmi/chains";
+import { configureChains, createClient, mainnet, WagmiConfig } from "wagmi";
+import { polygon, polygonMumbai, sepolia } from "wagmi/chains";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 
@@ -14,8 +14,11 @@ const wallaby = {
   testnet: true,
 };
 
+const testnetChains = [polygonMumbai, sepolia, wallaby];
+const mainnetChains = [polygon, mainnet];
+
 const { provider, chains } = configureChains(
-  [polygonMumbai, sepolia, wallaby],
+  process.env.NEXT_PUBLIC_MAINNET ? mainnetChains : testnetChains,
   [
     jsonRpcProvider({
       rpc: (chain) => ({ http: chain.rpcUrls.default.http[0] }),
