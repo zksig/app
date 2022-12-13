@@ -1,8 +1,8 @@
 import type { NextPage } from "next";
-import NewCreateAgreement from "../../components/agreements/NewCreateAgreement";
+import CreateAgreement from "../../components/agreements/CreateAgreement";
 
-const CreateAgreementPageNew: NextPage = () => {
-  return <NewCreateAgreement />;
+const CreateAgreementPage: NextPage = () => {
+  return <CreateAgreement />;
 };
 
-export default CreateAgreementPageNew;
+export default CreateAgreementPage;

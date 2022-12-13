@@ -12,7 +12,7 @@ const AgreementsPage: NextPage = () => {
       <h2 className="mb-2 text-2xl">Agreements</h2>
       <div className="flex justify-end">
         <Link href="/agreements/create">
-          <Button text="Create Agreement" iconName="add" className="mr-16" />
+          <Button text="Create Agreement" iconName="add" className="mr-2" />
         </Link>
       </div>
       <AgreementList agreements={agreements} />
