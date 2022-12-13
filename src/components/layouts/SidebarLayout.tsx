@@ -15,6 +15,7 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import BorderColorOutlinedIcon from "@mui/icons-material/BorderColorOutlined";
 import { useRouter } from "next/router";
 import { ConnectKitButton } from "connectkit";
+import { useAccount } from "wagmi";
 
 const routes = [
   {
@@ -118,7 +119,7 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const { asPath } = useRouter();
-
+  const { isConnected } = useAccount();
   return (
     <Box
       sx={{
@@ -127,22 +128,35 @@ export default function SidebarLayout({
         width: "100vw",
       }}
     >
-      <TopBar path={asPath} />
-      <div style={{ display: "flex" }}>
-        <SideBar path={asPath} />
+      {isConnected ? (
+        <>
+          <TopBar path={asPath} />
+          <div style={{ display: "flex" }}>
+            <SideBar path={asPath} />
+            <Box
+              sx={{
+                background: "white",
+                width: "calc(100vw - 270px)",
+                height: "calc(100vh - 120px)",
+                borderRadius: "50px 0 0 0",
+                p: "60px 80px",
+                overflowY: "scroll",
+              }}
+            >
+              {children}
+            </Box>
+          </div>
+        </>
+      ) : (
         <Box
-          sx={{
-            background: "white",
-            width: "calc(100vw - 270px)",
-            height: "calc(100vh - 120px)",
-            borderRadius: "50px 0 0 0",
-            p: "60px 80px",
-            overflowY: "scroll",
-          }}
+          height="100vh"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
         >
-          {children}
+          <ConnectKitButton showBalance />
         </Box>
-      </div>
+      )}
     </Box>
   );
 }
