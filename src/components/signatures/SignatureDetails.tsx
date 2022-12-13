@@ -1,8 +1,4 @@
-import {
-  Agreement,
-  SignaturePacket,
-  signMessage,
-} from "../../services/digitalSignatures";
+import { Agreement, SignaturePacket } from "../../services/digitalSignatures";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useIPFS } from "../../providers/IPFSProvider";
@@ -11,8 +7,8 @@ import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
-import { useWalletAddress } from "../../providers/FilecoinProvider";
 import { constants } from "ethers";
+import { useAccount, useSignMessage } from "wagmi";
 
 export default function SignatureDetails({
   agreement,
@@ -22,20 +18,21 @@ export default function SignatureDetails({
   signature: SignaturePacket;
 }) {
   const ipfs = useIPFS();
-  const address = useWalletAddress();
+  const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
   const getEncyptionPWBytes = useCallback(async () => {
-    if (!signMessage) throw new Error("Wallet not connected");
-
-    const encryptionPWBytes = await signMessage(
-      `Encrypt PDF for ${agreement.identifier}`
+    const encryptionPWBytes = Buffer.from(
+      await signMessageAsync({
+        message: `Encrypt PDF for ${agreement.identifier}`,
+      })
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
     return encryptionPWBytes;
-  }, [signMessage, agreement]);
+  }, [signMessageAsync, agreement]);
 
   const handleDecryptPdf = useCallback(async () => {
     try {

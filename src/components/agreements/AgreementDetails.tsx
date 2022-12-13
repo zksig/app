@@ -7,8 +7,9 @@ import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
 import { useCallback } from "react";
 import { downloadAndDecrypt } from "../../utils/files";
-import { Agreement, signMessage } from "../../services/digitalSignatures";
+import { Agreement } from "../../services/digitalSignatures";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import { useSignMessage } from "wagmi";
 
 export default function AgreementDetails({
   agreement,
@@ -16,19 +17,20 @@ export default function AgreementDetails({
   agreement: Agreement;
 }) {
   const ipfs = useIPFS();
+  const { signMessageAsync } = useSignMessage();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
   const getEncyptionPWBytes = useCallback(async () => {
-    if (!signMessage) throw new Error("Wallet not connected");
-
-    const encryptionPWBytes = await signMessage(
-      `Encrypt PDF for ${agreement.identifier}`
+    const encryptionPWBytes = Buffer.from(
+      await signMessageAsync({
+        message: `Encrypt PDF for ${agreement.identifier}`,
+      })
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
     return encryptionPWBytes;
-  }, [signMessage, agreement]);
+  }, [signMessageAsync, agreement]);
 
   const handleDecryptPdf = useCallback(async () => {
     try {

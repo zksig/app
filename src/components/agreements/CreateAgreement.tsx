@@ -8,12 +8,9 @@ import { useRouter } from "next/router";
 import { useIPFS } from "../../providers/IPFSProvider";
 import Button from "../common/Button";
 import { encryptAgreementAndPin, pinFile } from "../../utils/files";
-import {
-  createAgreement,
-  getAddress,
-  signMessage,
-} from "../../services/digitalSignatures";
 import { Switch, Tab } from "@headlessui/react";
+import { useAccount, useSignMessage } from "wagmi";
+import { useCreateAgreement } from "../../services/digitalSignatures";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -307,6 +304,9 @@ const AddSignatures = ({
 const CreateAgreement = () => {
   const router = useRouter();
   const ipfs = useIPFS();
+  const createAgreement = useCreateAgreement();
+  const { address } = useAccount();
+  const { signMessageAsync } = useSignMessage();
   const [selectedTab, setSelectedTab] = useState(0);
   const [identifier, setIdentifier] = useState("");
   const [makeNft, setMakeNft] = useState(true);
@@ -318,15 +318,14 @@ const CreateAgreement = () => {
   >([]);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf || !signMessage) return;
+    if (!ipfs || !pdf) return;
 
     try {
       setLoading(true);
 
-      const encryptionPWBytes = await signMessage(
-        `Encrypt PDF for ${identifier}`
+      const encryptionPWBytes = Buffer.from(
+        await signMessageAsync({ message: `Encrypt PDF for ${identifier}` })
       );
-      const address = await getAddress();
 
       const [encryptedCid, descriptionCid, pdfIPFS] = await Promise.all([
         encryptAgreementAndPin({

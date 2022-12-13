@@ -1,7 +1,8 @@
 import type { NextPage } from "next";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import { useSignMessage } from "wagmi";
 import { useIPFS } from "../../../../../providers/IPFSProvider";
 import Sign from "../../../../../components/agreements/Sign";
 import {
@@ -9,27 +10,26 @@ import {
   encryptAgreementAndPin,
 } from "../../../../../utils/files";
 import {
-  Agreement,
-  getAgreement,
-  sign,
-  signMessage,
+  useAgreement,
+  useSign,
 } from "../../../../../services/digitalSignatures";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();
+  const sign = useSign();
   const ipfs = useIPFS();
-  const [agreement, setAgreement] = useState<Agreement>();
+  const { signMessageAsync } = useSignMessage();
 
   const index = Number(router.query.index as string);
   const identifier = router.query.identifier as string;
   const encryptionPW = decodeURIComponent(router.query.pw as string);
+  const { agreement, refetch } = useAgreement({
+    address: router.query.owner as string,
+    index,
+  });
   const signature = agreement?.constraints.find(
     (constraint) => constraint.identifier === identifier
   );
-
-  const refetchAgreement = useCallback(async () => {
-    setAgreement(await getAgreement(index, router.query.owner as string));
-  }, [router.query.owner, index]);
 
   const handleSign = useCallback(async () => {
     try {
@@ -41,8 +41,10 @@ const SignAgreementPage: NextPage = () => {
         cid: agreement.encryptedCid,
       });
 
-      const encryptionPWBytes = await signMessage(
-        `Encrypt PDF for ${agreement.identifier}`
+      const encryptionPWBytes = Buffer.from(
+        await signMessageAsync({
+          message: `Encrypt PDF for ${agreement.identifier}`,
+        })
       );
 
       const cid = await encryptAgreementAndPin({
@@ -57,16 +59,20 @@ const SignAgreementPage: NextPage = () => {
         encryptedCid: cid,
       });
 
-      await refetchAgreement();
+      await refetch();
       toast.success("Signature complete");
     } catch (e: any) {
       toast.error(`Error signing agreement: ${e.message}`);
     }
-  }, [signMessage, agreement, ipfs, index, refetchAgreement, encryptionPW]);
-
-  useEffect(() => {
-    refetchAgreement();
-  }, [refetchAgreement]);
+  }, [
+    signMessageAsync,
+    identifier,
+    sign,
+    agreement,
+    ipfs,
+    refetch,
+    encryptionPW,
+  ]);
 
   if (!agreement || !signature) return null;
 
