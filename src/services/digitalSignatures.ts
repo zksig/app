@@ -1,8 +1,7 @@
-import { BigNumber, constants, Contract, providers } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { useEffect, useState } from "react";
 import { useAccount, useContract, useNetwork, useSigner } from "wagmi";
 import DigitalSignature from "./contracts/DigitalSignature.json";
-import { getProvider } from "./evm";
 
 export type Profile = {
   totalAgreements: BigNumber;
@@ -26,8 +25,9 @@ export type Agreement = {
   descriptionCid: string;
   signedPackets: number;
   totalPackets: number;
-  nftContractAddress?: string;
   constraints: SignatureConstraint[];
+  agreementCallback: string;
+  signatureCallback: string;
 };
 
 export type SignaturePacket = {
@@ -37,16 +37,20 @@ export type SignaturePacket = {
   identifier: string;
   encryptedCid: string;
   signer: string;
-  nftContractAddress?: string;
-  nftTokenId?: BigNumber;
   timestamp: number;
   blockNumber: number;
 };
 
 const contractAddresses: Record<string, string> = {
-  80001: "0xE2a21D2766FA64525CF0f9faA6933fF6fC176550",
-  11155111: "0xf8Fffac2f44C66E3aA3011B8B23c173A4d60bf39",
+  80001: "0xe98a7d8Dafc6b6f9c55E1382eF1EB1996edcA4d4",
+  11155111: "0x75f7ec65361FAA30c83c4D516D21EF3fFFdb15A4",
   31415: "0x0C8a04faB35dc3239AC4e88F26903CF46Bd0bA47",
+};
+
+const nftFactoryAddress: Record<string, string> = {
+  80001: "0x7966833305d155B6411a0E0bAAD1ec8894F9319F",
+  11155111: "0xA674B918Cb7FE8cE72584A9841B21A58DC1584F8",
+  31415: "0xA674B918Cb7FE8cE72584A9841B21A58DC1584F8",
 };
 
 export const useDigitalSignatureContract = () => {
@@ -89,6 +93,7 @@ export const useProfile = (): {
 };
 
 export const useCreateAgreement = () => {
+  const network = useNetwork();
   const contract = useDigitalSignatureContract();
 
   return async ({
@@ -118,9 +123,12 @@ export const useCreateAgreement = () => {
         cid,
         encryptedCid,
         descriptionCid,
-        withNFT,
-        nftImageCid: "",
         constraints,
+        agreementCallback: withNFT
+          ? nftFactoryAddress[network.chain?.id || "11155111"]
+          : constants.AddressZero,
+        signatureCallback: constants.AddressZero,
+        extraInfo: Buffer.from(""), // nftImageCid
       })
     ).wait(1);
   };

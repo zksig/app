@@ -25,7 +25,7 @@ export default function AgreementList({
                 color={colorByStatus[agreement.status]}
                 text={statusTitle[agreement.status]}
               />
-              {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
+              {agreement.agreementCallback !== ethers.constants.AddressZero ? (
                 <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
               ) : null}
             </div>

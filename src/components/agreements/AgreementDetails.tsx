@@ -141,17 +141,17 @@ export default function AgreementDetails({
           text={statusTitle[agreement.status]}
           color={colorByStatus[agreement.status]}
         />
-        {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
+        {agreement.agreementCallback !== ethers.constants.AddressZero ? (
           <>
             <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
             <button
               className="flex items-center gap-1"
               onClick={() => {
-                navigator.clipboard.writeText(agreement.nftContractAddress!);
+                navigator.clipboard.writeText(agreement.agreementCallback!);
                 toast.success("NFT Address stored in clipboard");
               }}
             >
-              <span>{agreement.nftContractAddress}</span>
+              <span>{agreement.agreementCallback}</span>
               <ClipboardDocumentIcon className="w-6" />
             </button>
           </>
