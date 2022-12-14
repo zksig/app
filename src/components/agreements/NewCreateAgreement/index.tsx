@@ -19,6 +19,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { classes } from "./styles";
 import Review from "./Review";
+import PDFEditor from "../CreateAgreementReskin";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -196,14 +197,7 @@ const NewCreateAgreement = () => {
         </Button>
       </Grid>
     </Grid>,
-    <AddSignatures
-      key={"add-signatures"}
-      signers={pdfDescription.map((signer) => signer.identifier)}
-      onAddSigner={handleAddSigner}
-      onUpdateSigner={handleUpdateSigner}
-      setCurrentStep={setCurrentStep}
-    />,
-
+    <PDFEditor key={"add-signature"} pdf={pdf} handleCreateAgreement={handleCreateAgreement}/>,
     <Review
       key={"Review"}
       signers={pdfDescription.map((signer) => signer.identifier)}
@@ -241,31 +235,9 @@ const NewCreateAgreement = () => {
         />
       </Grid>
       <Grid item xs={3} />
-      <Grid item xs={12}>
-        <DndProvider backend={HTML5Backend}>
-          <Grid container spacing={2} sx={{ marginTop: "16px" }}>
-            <Grid item xs={2} />
-            <Grid item xs={4}>
-              {content[currentStep]}
-            </Grid>
-            {!!pdf ? (
-              <>
-                <Grid item xs={4}>
-                  <DocumentPreview
-                    pdf={pdf}
-                    withDrop={currentStep === 1}
-                    onAddField={handleNewField}
-                    docSignatureWidth={docSignatureWidth}
-                    docSignatureHeight={docSignatureHeight}
-                  />
-                </Grid>
-                <Grid item xs={2} />
-              </>
-            ) : (
-              <Grid item xs={6} />
-            )}
-          </Grid>
-        </DndProvider>
+
+      <Grid item lg={12}>
+        {content[currentStep]}
       </Grid>
     </Grid>
   );
