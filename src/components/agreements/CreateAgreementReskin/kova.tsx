@@ -119,17 +119,15 @@ const Kova = ({fields, setFields, pdf}: KonvaProps) => {
   }, [pdf]);
 
   return (
-    <Box>
-      <Box mx={3}>
-        {/* @ts-ignore */}
-        <Stage width={width} height={height} ref={stageRef}>
-          <Layer>
-            {pdfCanvas.width > 0 && <PDFShape width={pdfCanvas.width} height={pdfCanvas.height} pdfCanvas={pdfCanvas.canvas}/>}   
-            {FieldsDisplay}
-          </Layer>
-        </Stage>
-      </Box>
-    </Box >
+    <Box mx={3}>
+      {/* @ts-ignore */}
+      <Stage width={width} height={height} ref={stageRef}>
+        <Layer>
+          {pdfCanvas.width > 0 && <PDFShape width={pdfCanvas.width} height={pdfCanvas.height} pdfCanvas={pdfCanvas.canvas}/>}   
+          {FieldsDisplay}
+        </Layer>
+      </Stage>
+    </Box>
   );
 };
 

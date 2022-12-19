@@ -92,14 +92,7 @@ const AddSignatures = ({
             <Grid item lg={6}  justifyContent="space-evenly" display={"flex"}>
               <Button variant="contained" onClick={handleAdd}>
                 <Typography style={{color: "black", display: "inline"}}>
-            Add a Signature 
-                </Typography>
-              </Button>
-            </Grid>
-            <Grid item lg={6}  justifyContent="space-evenly" display={"flex"}>
-              <Button variant="contained" onClick={handleAdd}>
-                <Typography style={{color: "black", display: "inline"}}>
-            Add a Field 
+            Add a Signer 
                 </Typography>
               </Button>
             </Grid>
@@ -115,11 +108,33 @@ const AddSignatures = ({
                   aria-controls="panel1a-content"
                   id="panel1a-header"
                 >
-                  <Typography>Field #{f.id + 1}</Typography>
+                  <Typography>Signer #{f.id + 1}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Box p={2} mb={2}>
                     <Grid container spacing={2} my={2}>
+                      <Grid item lg={10}>
+                        <TextField
+                          name="identifier"
+                          required
+                          size="small"
+                          id="identifier"
+                          fullWidth
+                          label='Identifier/Signers Title'
+                          autoFocus
+                          value={f.identifier}
+                          onChange={(e) => {
+                          // @ts-ignore
+                            setFields((prev) => {
+                            // @ts-ignore
+                              var item = prev.find(x => x.id === f.id);
+                              const index = prev.indexOf(item);
+                              prev[index] = { ...item, [e.target.name]: e.target.value};
+                              return [...prev];
+                            });
+                          }}
+                        />            
+                      </Grid> 
                       <Grid item lg={5}>
                         <TextField
                           name="text"
