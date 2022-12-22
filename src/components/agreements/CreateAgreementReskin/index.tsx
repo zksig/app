@@ -97,7 +97,7 @@ const AddSignatures = ({
               </Button>
             </Grid>
           </Grid>
-          <Divider style={{marginTop: "2rems"}}><Typography variant="subtitle1" fontWeight={600} padding={1} textAlign="start">Fields</Typography></Divider>
+          <Divider style={{marginTop: "2rem", marginBottom: "2rem"}}></Divider>
           {/* @ts-ignore */}
           {fields.map(f => {
             return (
