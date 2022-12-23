@@ -1,51 +1,13 @@
-import { BigNumber, constants } from "ethers";
-import { useEffect, useState } from "react";
-import { useAccount, useContract, useNetwork, useSigner } from "wagmi";
-import DigitalSignature from "./contracts/DigitalSignature.json";
-
-export type Profile = {
-  totalAgreements: BigNumber;
-  totalSignatures: BigNumber;
-};
-
-export type SignatureConstraint = {
-  identifier: string;
-  signer: string;
-  totalUsed: BigNumber;
-  allowedToUse: BigNumber; // set to 0 for unlimited
-};
-
-export type Agreement = {
-  owner: string;
-  status: number;
-  index: BigNumber;
-  identifier: string;
-  cid: string;
-  encryptedCid: string;
-  descriptionCid: string;
-  signedPackets: number;
-  totalPackets: number;
-  constraints: SignatureConstraint[];
-  agreementCallback: string;
-  signatureCallback: string;
-};
-
-export type SignaturePacket = {
-  agreementOwner: string;
-  agreementIndex: BigNumber;
-  index: BigNumber;
-  identifier: string;
-  encryptedCid: string;
-  signer: string;
-  timestamp: number;
-  blockNumber: number;
-};
-
-const contractAddresses: Record<string, string> = {
-  80001: "0xe98a7d8Dafc6b6f9c55E1382eF1EB1996edcA4d4",
-  11155111: "0x75f7ec65361FAA30c83c4D516D21EF3fFFdb15A4",
-  31415: "0x0C8a04faB35dc3239AC4e88F26903CF46Bd0bA47",
-};
+import { useCallback, useEffect, useState } from "react";
+import { constants, Signer } from "ethers";
+import {
+  Agreement,
+  Profile,
+  SignaturePacket,
+  ZKsigAgreement,
+  ZKsigDigitalSignatureContract,
+} from "@zksig/sdk";
+import { useAccount, useNetwork, useSigner } from "wagmi";
 
 const nftFactoryAddress: Record<string, string> = {
   80001: "0x7966833305d155B6411a0E0bAAD1ec8894F9319F",
@@ -56,10 +18,9 @@ const nftFactoryAddress: Record<string, string> = {
 export const useDigitalSignatureContract = () => {
   const network = useNetwork();
   const { data: signer } = useSigner();
-  const contract = useContract({
-    address: contractAddresses[network.chain?.id || "11155111"],
-    abi: DigitalSignature.abi,
-    signerOrProvider: signer,
+  const contract = new ZKsigDigitalSignatureContract({
+    signer: signer as Signer,
+    chainId: network.chain?.id,
   });
 
   return contract;
@@ -69,15 +30,14 @@ export const useProfile = (): {
   isLoading: boolean;
   profile?: Profile;
 } => {
-  const [profile, setProfile] = useState();
+  const [profile, setProfile] = useState<Profile>();
   const [isLoading, setIsLoading] = useState(true);
   const contract = useDigitalSignatureContract();
 
   useEffect(() => {
-    if (!contract) return;
     (async () => {
       try {
-        setProfile(await contract?.getProfile());
+        setProfile(await contract.getProfile());
       } catch (e) {
         console.log(e);
       } finally {
@@ -93,44 +53,10 @@ export const useProfile = (): {
 };
 
 export const useCreateAgreement = () => {
-  const network = useNetwork();
   const contract = useDigitalSignatureContract();
 
-  return async ({
-    identifier,
-    cid,
-    encryptedCid,
-    descriptionCid,
-    description,
-    withNFT,
-  }: {
-    identifier: string;
-    cid: string;
-    encryptedCid: string;
-    descriptionCid: string;
-    description: { identifier: string; fields: string[] }[];
-    withNFT: boolean;
-  }) => {
-    const constraints = description.map(({ identifier }) => ({
-      identifier,
-      signer: constants.AddressZero,
-      totalUsed: 0,
-      allowedToUse: 1,
-    }));
-    return (
-      await contract?.createAgreement({
-        identifier,
-        cid,
-        encryptedCid,
-        descriptionCid,
-        constraints,
-        agreementCallback: withNFT
-          ? nftFactoryAddress[network.chain?.id || "11155111"]
-          : constants.AddressZero,
-        signatureCallback: constants.AddressZero,
-        extraInfo: Buffer.from(""), // nftImageCid
-      })
-    ).wait(1);
+  return async (agreement: ZKsigAgreement) => {
+    return (await contract.createAgreement(agreement)).wait(1);
   };
 };
 
@@ -140,25 +66,21 @@ export const useAgreements = (
   isLoading: boolean;
   agreements: Agreement[];
 } => {
-  const { address } = useAccount();
-  const [agreements, setAgreements] = useState([]);
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const contract = useDigitalSignatureContract();
 
   useEffect(() => {
-    if (!contract) return;
     (async () => {
       try {
-        setAgreements(
-          await contract?.getAgreements(address, (page - 1) * 10, 10)
-        );
+        setAgreements(await contract.getAgreements({ page, perPage: 10 }));
       } catch (e) {
         console.log(e);
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [address, page, contract]);
+  }, [page, contract]);
 
   return {
     isLoading,
@@ -177,27 +99,23 @@ export const useAgreement = ({
   agreement?: Agreement;
   refetch: () => Promise<void>;
 } => {
-  const { address: defaultAddress } = useAccount();
-  const [agreement, setAgreement] = useState();
+  const [agreement, setAgreement] = useState<Agreement>();
   const [isLoading, setIsLoading] = useState(true);
   const contract = useDigitalSignatureContract();
 
-  const fetchAgreement = async () => {
+  const fetchAgreement = useCallback(async () => {
     try {
-      setAgreement(
-        (await contract?.getAgreements(address || defaultAddress, index, 1))[0]
-      );
+      setAgreement(await contract.getAgreement({ address, index }));
     } catch (e) {
       console.log(e);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [index, contract, address]);
 
   useEffect(() => {
-    if (!contract) return;
     fetchAgreement();
-  }, [address, defaultAddress, index, contract]);
+  }, [index, contract, address, fetchAgreement]);
 
   return {
     isLoading,
@@ -212,25 +130,21 @@ export const useSignatures = (
   isLoading: boolean;
   signatures: SignaturePacket[];
 } => {
-  const { address } = useAccount();
-  const [signatures, setSignatures] = useState([]);
+  const [signatures, setSignatures] = useState<SignaturePacket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const contract = useDigitalSignatureContract();
 
   useEffect(() => {
-    if (!contract) return;
     (async () => {
       try {
-        setSignatures(
-          await contract?.getSignatures(address, (page - 1) * 10, 10)
-        );
+        setSignatures(await contract.getSignatures({ page, perPage: 10 }));
       } catch (e) {
         console.log(e);
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [address, page, contract]);
+  }, [page, contract]);
 
   return {
     isLoading,
@@ -248,27 +162,21 @@ export const useSignature = ({
   isLoading: boolean;
   signature?: SignaturePacket;
 } => {
-  const { address: defaultAddress } = useAccount();
-  const [signature, setSignature] = useState();
+  const [signature, setSignature] = useState<SignaturePacket>();
   const [isLoading, setIsLoading] = useState(true);
   const contract = useDigitalSignatureContract();
 
   useEffect(() => {
-    if (!contract) return;
     (async () => {
       try {
-        setSignature(
-          (
-            await contract?.getSignatures(address || defaultAddress, index, 1)
-          )[0]
-        );
+        setSignature(await contract.getSignature({ address, index }));
       } catch (e) {
         console.log(e);
       } finally {
         setIsLoading(false);
       }
     })();
-  }, [address, defaultAddress, index, contract]);
+  }, [address, index, contract]);
 
   return {
     isLoading,
@@ -282,19 +190,17 @@ export const useSign = () => {
   return async ({
     agreement,
     identifier,
-    encryptedCid,
+    pdf,
   }: {
     agreement: Agreement;
     identifier: string;
-    encryptedCid: string;
+    pdf: Uint8Array;
   }) => {
     return (
-      await contract?.sign({
-        agreementOwner: agreement.owner,
-        agreementIndex: agreement.index,
+      await contract.sign({
+        agreement,
         identifier,
-        encryptedCid,
-        nftTokenURI: "4234234324",
+        pdf,
       })
     ).wait(1);
   };

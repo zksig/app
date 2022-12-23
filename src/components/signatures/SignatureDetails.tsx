@@ -1,14 +1,12 @@
-import { Agreement, SignaturePacket } from "../../services/digitalSignatures";
-import { useState } from "react";
+import type { Agreement, SignaturePacket } from "@zksig/sdk";
+import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { useIPFS } from "../../providers/IPFSProvider";
+import { constants } from "ethers";
+import { useAccount } from "wagmi";
+import { useDigitalSignatureContract } from "../../services/digitalSignatures";
 import Badge from "../common/Badge";
 import { colorByStatus, statusTitle } from "../../utils/ui";
 import Button from "../common/Button";
-import { useCallback } from "react";
-import { downloadAndDecrypt } from "../../utils/files";
-import { constants } from "ethers";
-import { useAccount, useSignMessage } from "wagmi";
 
 export default function SignatureDetails({
   agreement,
@@ -17,30 +15,15 @@ export default function SignatureDetails({
   agreement: Agreement;
   signature: SignaturePacket;
 }) {
-  const ipfs = useIPFS();
   const { address } = useAccount();
-  const { signMessageAsync } = useSignMessage();
+  const contract = useDigitalSignatureContract();
   const [pdfUrl, setPdfUrl] = useState("");
-  const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
-
-  const getEncyptionPWBytes = useCallback(async () => {
-    const encryptionPWBytes = Buffer.from(
-      await signMessageAsync({
-        message: `Encrypt PDF for ${agreement.identifier}`,
-      })
-    );
-    setEncryptionPWBytes(encryptionPWBytes);
-
-    return encryptionPWBytes;
-  }, [signMessageAsync, agreement]);
 
   const handleDecryptPdf = useCallback(async () => {
     try {
-      if (!ipfs) throw new Error("IPFS not ready");
-
-      const pdf = await downloadAndDecrypt({
-        encryptionPWBytes: encryptionPWBytes || (await getEncyptionPWBytes()),
-        cid: signature.encryptedCid,
+      const pdf = await contract.getSignaturePDF({
+        agreement,
+        packet: signature,
       });
 
       setPdfUrl(
@@ -49,7 +32,7 @@ export default function SignatureDetails({
     } catch (e: any) {
       toast.error(`Unable to decrypt agreement: ${e.message}`);
     }
-  }, [ipfs, agreement, getEncyptionPWBytes]);
+  }, [agreement, signature, contract]);
 
   const signaturesDisplay = agreement.constraints.map((constraint) => (
     <li key={constraint.identifier}>

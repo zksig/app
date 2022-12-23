@@ -950,6 +950,13 @@
   dependencies:
     multiformats "^9.5.4"
 
+"@ipld/dag-pb@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@ipld/dag-pb/-/dag-pb-3.0.1.tgz#b1e4d026c055dc865840690fb43c66b47c1f8793"
+  integrity sha512-52HRAgcc1/Y65hljEBeBsMKibZ7WfJKguyOK+mOXwd1c99D/ba13NCFF2OkVzDV6N0zoP1unq4YfsX3QSz7/zA==
+  dependencies:
+    multiformats "^10.0.2"
+
 "@jridgewell/gen-mapping@^0.3.2":
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.2.tgz#c1aedc61e853f2bb9f5dfe6d4442d3b565b253b9"
@@ -2991,6 +2998,19 @@
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@web3-storage/parse-link-header/-/parse-link-header-3.1.0.tgz#4562724987649dd6d3e07c87be1826804d212ef7"
   integrity sha512-K1undnK70vLLauqdE8bq/l98isTF2FDhcP0UPpXVSjkSWe3xhAn5eRXk5jfA1E5ycNm84Ws/rQFUD7ue11nciw==
+
+"@zksig/sdk@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@zksig/sdk/-/sdk-0.0.2.tgz#d1b98cb3ad6c8eb635353dc4022d2c6f11d90eb4"
+  integrity sha512-ikq15XetFQVqBcCq8W0wQ3Ywl7rCpSTN5CqhMe7KkeZihTp46ThTuZ07NISuB44DCesAdLkZ7VTpMK5VCbmNLw==
+  dependencies:
+    "@ipld/dag-pb" "^3.0.1"
+    ethers "^5.7.2"
+    ipfs-car "^0.9.1"
+    ipfs-unixfs "^8.0.0"
+    multiformats "^10.0.3"
+    pdf-lib "^1.17.1"
+    tweetnacl "^1.0.3"
 
 "@zxing/text-encoding@0.9.0":
   version "0.9.0"
@@ -6001,6 +6021,14 @@ ipfs-unixfs@^7.0.0:
     err-code "^3.0.1"
     protobufjs "^7.0.0"
 
+ipfs-unixfs@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/ipfs-unixfs/-/ipfs-unixfs-8.0.0.tgz#342c09edab3cbed8baf26f661d81a0f72ab420e6"
+  integrity sha512-PAHtfyjiFs2PZBbeft5QRyXpVOvZ2zsGqID+zVRla7fjC1zRTqJkrGY9h6dF03ldGv/mSmFlNZh479qPC6aZKg==
+  dependencies:
+    err-code "^3.0.1"
+    protobufjs "^7.0.0"
+
 ipfs-utils@^9.0.2, ipfs-utils@^9.0.6:
   version "9.0.7"
   resolved "https://registry.yarnpkg.com/ipfs-utils/-/ipfs-utils-9.0.7.tgz#b8644b9d053e4dd258f69773b146ac243921aa1f"
@@ -7262,6 +7290,11 @@ multiformats@^10.0.0, multiformats@^10.0.1, multiformats@^10.0.2:
   version "10.0.2"
   resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-10.0.2.tgz#e549ae833dac77edb534bece4adf1d1a214879f0"
   integrity sha512-nJEHLFOYhO4L+aNApHhCnWqa31FyqAHv9Q77AhmwU3KsM2f1j7tuJpCk5ByZ33smzycNCpSG5klNIejIyfFx2A==
+
+multiformats@^10.0.3:
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-10.0.3.tgz#d4147d01f9a31271c6fb5d24adf9b01f9e656bba"
+  integrity sha512-K2yGSmstS/oEmYiEIieHb53jJCaqp4ERPDQAYrm5sV3UUrVDZeshJQCK6GHAKyIGufU1vAcbS0PdAAZmC7Tzcw==
 
 multiformats@^9.0.4, multiformats@^9.1.0, multiformats@^9.4.13, multiformats@^9.4.2, multiformats@^9.4.5, multiformats@^9.4.7, multiformats@^9.5.1, multiformats@^9.5.4, multiformats@^9.6.3, multiformats@^9.6.4:
   version "9.9.0"

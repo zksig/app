@@ -3,8 +3,6 @@ import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useIPFS } from "../../../providers/IPFSProvider";
-import { encryptAgreementAndPin } from "../../../utils/files";
 import Stepper from "../../common/Stepper";
 import ConfigureAgreement from "./ConfigureAgreement";
 import DocumentPreview from "./DocumentPreview";
@@ -14,8 +12,6 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { classes } from "./styles";
 import Review from "./Review";
-import { useAccount, useSignMessage } from "wagmi";
-import { useCreateAgreement } from "../../../services/digitalSignatures";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -29,10 +25,6 @@ const NewCreateAgreement = () => {
   const router = useRouter();
   const docSignatureWidth = 100;
   const docSignatureHeight = 14;
-  const createAgreement = useCreateAgreement();
-  const { address } = useAccount();
-  const ipfs = useIPFS();
-  const { signMessageAsync } = useSignMessage();
   const [identifier, setIdentifier] = useState("");
   const [pdf, setPdf] = useState<Uint8Array>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -42,32 +34,10 @@ const NewCreateAgreement = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf) return;
+    if (!pdf) return;
 
     try {
       setLoading(true);
-
-      const encryptionPWBytes = Buffer.from(
-        await signMessageAsync({ message: `Encrypt PDF for ${identifier}` })
-      );
-      const encryptedCid = await encryptAgreementAndPin({
-        pdf,
-        name: `${address}: ${identifier}`,
-        encryptionPWBytes,
-      });
-      const [pdfIPFS, descriptionIPFS] = await Promise.all([
-        ipfs.add(pdf, { wrapWithDirectory: false }),
-        ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
-      ]);
-      const id = await createAgreement({
-        identifier,
-        cid: pdfIPFS.cid.toV1().toString(),
-        encryptedCid,
-        descriptionCid: descriptionIPFS.cid.toV1().toString(),
-        description: pdfDescription,
-        withNFT: true,
-      });
-
       router.push("/agreements");
     } catch (e) {
       console.log(e);

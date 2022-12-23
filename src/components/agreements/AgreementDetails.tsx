@@ -1,53 +1,44 @@
-import { useState } from "react";
+import type { Agreement } from "@zksig/sdk";
+import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { constants, ethers } from "ethers";
-import { useIPFS } from "../../providers/IPFSProvider";
-import Badge from "../common/Badge";
-import { colorByStatus, statusTitle } from "../../utils/ui";
-import Button from "../common/Button";
-import { useCallback } from "react";
-import { downloadAndDecrypt } from "../../utils/files";
-import { Agreement } from "../../services/digitalSignatures";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
-import { useSignMessage } from "wagmi";
+import Badge from "../common/Badge";
+import Button from "../common/Button";
+import { colorByStatus, statusTitle } from "../../utils/ui";
+import { useDigitalSignatureContract } from "../../services/digitalSignatures";
 
 export default function AgreementDetails({
   agreement,
 }: {
   agreement: Agreement;
 }) {
-  const ipfs = useIPFS();
-  const { signMessageAsync } = useSignMessage();
+  const contract = useDigitalSignatureContract();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
   const getEncyptionPWBytes = useCallback(async () => {
-    const encryptionPWBytes = Buffer.from(
-      await signMessageAsync({
-        message: `Encrypt PDF for ${agreement.identifier}`,
-      })
+    const encryptionPWBytes = await contract.getAgreementEncryptionMessage(
+      agreement
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
     return encryptionPWBytes;
-  }, [signMessageAsync, agreement]);
+  }, [agreement, contract]);
 
   const handleDecryptPdf = useCallback(async () => {
     try {
-      if (!ipfs) throw new Error("IPFS not ready");
-
-      const pdf = await downloadAndDecrypt({
-        encryptionPWBytes: encryptionPWBytes || (await getEncyptionPWBytes()),
-        cid: agreement.encryptedCid,
-      });
-
+      const pdf = await contract.getAgreementPDF(
+        agreement,
+        encryptionPWBytes || (await getEncyptionPWBytes())
+      );
       setPdfUrl(
         `data:application/pdf;base64,${Buffer.from(pdf!).toString("base64")}`
       );
     } catch (e: any) {
       toast.error(`Unable to decrypt agreement: ${e.message}`);
     }
-  }, [ipfs, agreement, getEncyptionPWBytes]);
+  }, [agreement, contract, encryptionPWBytes, getEncyptionPWBytes]);
 
   const signaturesDisplay = agreement.constraints.map((constraint) => (
     <li key={constraint.identifier}>

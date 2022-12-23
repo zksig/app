@@ -1,11 +1,7 @@
-import type {
-  Agreement,
-  SignatureConstraint,
-} from "../../services/digitalSignatures";
+import type { Agreement, SignatureConstraint } from "@zksig/sdk";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useIPFS } from "../../providers/IPFSProvider";
-import { downloadAndDecrypt } from "../../utils/files";
+import { useDigitalSignatureContract } from "../../services/digitalSignatures";
 import Badge from "../common/Badge";
 import Button from "../common/Button";
 
@@ -20,21 +16,17 @@ export default function Sign({
   encryptionPW: string;
   onSign: () => void;
 }) {
-  const ipfs = useIPFS();
+  const contract = useDigitalSignatureContract();
   const [pdfUrl, setPdfUrl] = useState("");
 
   useEffect(() => {
     if (!encryptionPW) return;
     (async () => {
       try {
-        if (!ipfs) throw new Error("IPFS not ready");
-
-        const pdf = await downloadAndDecrypt({
-          cid: agreement.encryptedCid,
-          encryptionPWBytes: new Uint8Array(
-            Buffer.from(encryptionPW, "base64")
-          ),
-        });
+        const pdf = await contract.getAgreementPDF(
+          agreement,
+          Buffer.from(encryptionPW, "base64")
+        );
 
         setPdfUrl(
           `data:application/pdf;base64,${Buffer.from(pdf!).toString("base64")}`
@@ -44,7 +36,7 @@ export default function Sign({
         toast.error(`Unable to decrypt agreement: ${e.message}`);
       }
     })();
-  }, [ipfs, encryptionPW, agreement]);
+  }, [encryptionPW, agreement]);
 
   return (
     <section>

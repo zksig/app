@@ -2,23 +2,17 @@ import type { NextPage } from "next";
 import { useCallback } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { useSignMessage } from "wagmi";
-import { useIPFS } from "../../../../../providers/IPFSProvider";
 import Sign from "../../../../../components/agreements/Sign";
 import {
-  downloadAndDecrypt,
-  encryptAgreementAndPin,
-} from "../../../../../utils/files";
-import {
   useAgreement,
+  useDigitalSignatureContract,
   useSign,
 } from "../../../../../services/digitalSignatures";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();
+  const contract = useDigitalSignatureContract();
   const sign = useSign();
-  const ipfs = useIPFS();
-  const { signMessageAsync } = useSignMessage();
 
   const index = Number(router.query.index as string);
   const identifier = router.query.identifier as string;
@@ -33,30 +27,17 @@ const SignAgreementPage: NextPage = () => {
 
   const handleSign = useCallback(async () => {
     try {
-      if (!ipfs) throw new Error("IPFS not loaded");
       if (!agreement) throw new Error("Missing agreement");
 
-      const pdf = await downloadAndDecrypt({
-        encryptionPWBytes: new Uint8Array(Buffer.from(encryptionPW, "base64")),
-        cid: agreement.encryptedCid,
-      });
-
-      const encryptionPWBytes = Buffer.from(
-        await signMessageAsync({
-          message: `Encrypt PDF for ${agreement.identifier}`,
-        })
+      const pdf = await contract.getAgreementPDF(
+        agreement,
+        Buffer.from(encryptionPW, "base64")
       );
-
-      const cid = await encryptAgreementAndPin({
-        encryptionPWBytes,
-        pdf,
-        name: `Signature - ${identifier} on ${agreement.identifier}`,
-      });
 
       await sign({
         agreement,
         identifier,
-        encryptedCid: cid,
+        pdf,
       });
 
       await refetch();
@@ -64,15 +45,7 @@ const SignAgreementPage: NextPage = () => {
     } catch (e: any) {
       toast.error(`Error signing agreement: ${e.message}`);
     }
-  }, [
-    signMessageAsync,
-    identifier,
-    sign,
-    agreement,
-    ipfs,
-    refetch,
-    encryptionPW,
-  ]);
+  }, [contract, agreement, encryptionPW, identifier, refetch, sign]);
 
   if (!agreement || !signature) return null;
 
