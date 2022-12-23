@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { constants, Signer } from "ethers";
+import { Signer } from "ethers";
 import {
   Agreement,
   Profile,
@@ -7,13 +7,7 @@ import {
   ZKsigAgreement,
   ZKsigDigitalSignatureContract,
 } from "@zksig/sdk";
-import { useAccount, useNetwork, useSigner } from "wagmi";
-
-const nftFactoryAddress: Record<string, string> = {
-  80001: "0x7966833305d155B6411a0E0bAAD1ec8894F9319F",
-  11155111: "0xA674B918Cb7FE8cE72584A9841B21A58DC1584F8",
-  31415: "0xA674B918Cb7FE8cE72584A9841B21A58DC1584F8",
-};
+import { useNetwork, useSigner } from "wagmi";
 
 export const useDigitalSignatureContract = () => {
   const network = useNetwork();

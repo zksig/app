@@ -1,6 +1,6 @@
+import type { Agreement } from "@zksig/sdk";
 import { ethers } from "ethers";
 import Link from "next/link";
-import { Agreement } from "../../services/digitalSignatures";
 import { colorByStatus, statusTitle } from "../../utils/ui";
 import Badge from "../common/Badge";
 

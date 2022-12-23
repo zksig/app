@@ -2999,10 +2999,10 @@
   resolved "https://registry.yarnpkg.com/@web3-storage/parse-link-header/-/parse-link-header-3.1.0.tgz#4562724987649dd6d3e07c87be1826804d212ef7"
   integrity sha512-K1undnK70vLLauqdE8bq/l98isTF2FDhcP0UPpXVSjkSWe3xhAn5eRXk5jfA1E5ycNm84Ws/rQFUD7ue11nciw==
 
-"@zksig/sdk@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@zksig/sdk/-/sdk-0.0.2.tgz#d1b98cb3ad6c8eb635353dc4022d2c6f11d90eb4"
-  integrity sha512-ikq15XetFQVqBcCq8W0wQ3Ywl7rCpSTN5CqhMe7KkeZihTp46ThTuZ07NISuB44DCesAdLkZ7VTpMK5VCbmNLw==
+"@zksig/sdk@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@zksig/sdk/-/sdk-0.0.6.tgz#cbb4207aa29cc4586ac873b1b0b68e3e50226d99"
+  integrity sha512-NGv+vxa+OByD48A2TgxKRXBrCgQnJ7Er5wPtLY++kIr6QQo9lW/bX3v+Uj9k1wiSRDajPBx9n5dz6OwUXYgD7w==
   dependencies:
     "@ipld/dag-pb" "^3.0.1"
     ethers "^5.7.2"

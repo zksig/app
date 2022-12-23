@@ -225,6 +225,7 @@ const AddSignatures = ({
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const description = agreement.getDescription();
 
   useEffect(() => {
     (async () => {
@@ -241,7 +242,7 @@ const AddSignatures = ({
         viewport,
       });
     })();
-  }, [canvas, agreement.getDescription(), currentPage]);
+  }, [canvas, agreement, description, currentPage]);
 
   return (
     <DndProvider backend={HTML5Backend}>

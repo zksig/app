@@ -36,7 +36,7 @@ export default function Sign({
         toast.error(`Unable to decrypt agreement: ${e.message}`);
       }
     })();
-  }, [encryptionPW, agreement]);
+  }, [encryptionPW, agreement, contract]);
 
   return (
     <section>
