@@ -11,70 +11,47 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Box } from "@mui/system";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-type AddFieldOptions = {
-  x: number;
-  y: number;
-  page: number;
-  identifier: string;
-};
-
-const ConfigureAgreement = ({
+const PDFEditor = ({
   pdf,
-  onChangePdf,
+  handleCreateAgreement,
+  setCurrentStep,
+  signers, 
+  setSigners
 }: {
   pdf?: Uint8Array;
-  onChangePdf: (file: File) => void;
-}) => (
-  <Grid item my={3}>
-    <Button
-      variant="contained"
-      component="label"
-      size="large"
-      style={{backgroundColor: "black" , color: "white"}}
-    >
-      {pdf ? "Upload a different PDF" : "Upload a PDF"}
-      <input
-        type="file"
-        hidden
-        onChange={({ target }) => {
-          if (!target.files) return;
-          onChangePdf(target.files[0]);
-        }}
-      />
-    </Button>
-  </Grid>
-);
-
-
-const AddSignatures = ({
-  pdf,
-  signers,
-  onAddSigner,
-  onUpdateSigner,
-  onAddField,
-  handleFile,
-  handleCreateAgreement
-}: {
-  pdf?: Uint8Array;
-  signers: string[];
-  onAddSigner: (identifier?: string) => void;
-  onUpdateSigner: (oldIdentifier: string) => (newIdentifier: string) => void;
-  onAddField: (options: AddFieldOptions) => void;
-  handleFile: (options: any) => void;
   handleCreateAgreement: () => void
+  setCurrentStep: (n: number) => void
+  signers: any[],
+  setSigners: (x: any) => void
 }) => {
-  const canvas = useRef<HTMLCanvasElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [data, setData] = useState("") as any;
-
-  const [fields, setFields] = useState([] as any);
 
 
-  const handleAdd = () => {
+  const handleAddSigner = () => {
     // @ts-ignore
-    setFields((prev) => {
-      return [...prev, {x: 10, y: 10, isDragging: false, id: prev.length, text: "Some Filler Text",}];
+    setSigners((prev) => {
+      return [...prev, {id: prev.length, identifier: `New Signer ${prev.length + 1}`, fields: [{x: 10, y: 10, isDragging: false, id: 1, page: currentPage}]}];
+    });
+  };
+  const handleAddField = (identifier: string) => {
+    setSigners((prev: any) => {
+      // @ts-ignore
+      var item = prev.find(x => x.identifier === identifier);
+      const index = prev.indexOf(item);
+      prev[index] = { ...item, fields: [...item.fields, {x: 10, y: 10, id: item.fields.length + 1, page: currentPage}]};
+      return [...prev];
+    });
+  };
+  const handleRemoveField = (identifier: string) => {
+    setSigners((prev: any) => {
+      console.log(identifier);
+      // @ts-ignore
+      var item = prev.find(x => x.identifier === identifier);
+      const index = prev.indexOf(item);
+      item.fields.splice(index, 1);
+      prev[index] = { ...item, fields: item.fields.map((f: any, i: number) => ({...f, id: i + 1}))};
+      return [...prev];
     });
   };
 
@@ -82,7 +59,16 @@ const AddSignatures = ({
     <Grid container   display="flex" justifyContent={"space-evenly"}>
       <Grid item lg={6} style={{minHeight: "100vh"}} mt={4} mb={12}>
         <Paper elevation={9}>
-          <PDFEdiot fields={fields} setFields={setFields} pdf={pdf}/>
+          <section className="py-4 mx-auto text-center">
+            <input
+              className="w-8 border-none bg-slate-50 p-0"
+              type="number"
+              value={currentPage}
+              onChange={({ target }) => setCurrentPage(parseInt(target.value))}
+            />{" "}
+          / {totalPages}
+          </section>
+          <PDFEdiot signers={signers} setSigners={setSigners} pdf={pdf} page={currentPage} setTotalPages={setTotalPages}/>
         </Paper>
       </Grid>
       <Grid item lg={5} m={2} mt={4} mb={12} style={{minHeight: "100vh"}}>
@@ -90,144 +76,63 @@ const AddSignatures = ({
           <Typography variant="h5" fontWeight={600} padding={1} textAlign="center">Configuration</Typography>
           <Grid container spacing={2} justifyContent="space-evenly" display={"flex"}>
             <Grid item lg={6}  justifyContent="space-evenly" display={"flex"}>
-              <Button variant="contained" onClick={handleAdd}>
-                <Typography style={{color: "black", display: "inline"}}>
-            Add a Signer 
+              <Button variant="contained" onClick={handleAddSigner}>
+                <Typography style={{ display: "inline"}}>
+                    Add a Signer 
                 </Typography>
               </Button>
             </Grid>
           </Grid>
           <Divider style={{marginTop: "2rem", marginBottom: "2rem"}}></Divider>
           {/* @ts-ignore */}
-          {fields.map(f => {
+          {signers.map(signer => {
             return (
 
-              <Accordion key={f.id}>
+              <Accordion key={signer.id}>
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   aria-controls="panel1a-content"
                   id="panel1a-header"
                 >
-                  <Typography>Signer #{f.id + 1}</Typography>
+                  <Grid item lg={10}>
+                    <TextField
+                      name="identifier"
+                      required
+                      size="small"
+                      id="identifier"
+                      fullWidth
+                      label='Identifier/Signers Title'
+                      autoFocus
+                      value={signer.identifier}
+                      onChange={(e) => {
+                        // @ts-ignore
+                        setSigners((prev) => {
+                          // @ts-ignore
+                          var item = prev.find(x => x.id === signer.id);
+                          const index = prev.indexOf(item);
+                          prev[index] = { ...item, [e.target.name]: e.target.value};
+                          return [...prev];
+                        });
+                      }}
+                    />            
+                  </Grid> 
                 </AccordionSummary>
                 <AccordionDetails>
                   <Box p={2} mb={2}>
                     <Grid container spacing={2} my={2}>
-                      <Grid item lg={10}>
-                        <TextField
-                          name="identifier"
-                          required
-                          size="small"
-                          id="identifier"
-                          fullWidth
-                          label='Identifier/Signers Title'
-                          autoFocus
-                          value={f.identifier}
-                          onChange={(e) => {
-                          // @ts-ignore
-                            setFields((prev) => {
-                            // @ts-ignore
-                              var item = prev.find(x => x.id === f.id);
-                              const index = prev.indexOf(item);
-                              prev[index] = { ...item, [e.target.name]: e.target.value};
-                              return [...prev];
-                            });
-                          }}
-                        />            
-                      </Grid> 
-                      <Grid item lg={5}>
-                        <TextField
-                          name="text"
-                          required
-                          size="small"
-                          id="text"
-                          fullWidth
-                          label='Text'
-                          autoFocus
-                          value={f.text}
-                          onChange={(e) => {
-                          // @ts-ignore
-                            setFields((prev) => {
-                            // @ts-ignore
-                              var item = prev.find(x => x.id === f.id);
-                              const index = prev.indexOf(item);
-                              prev[index] = { ...item, [e.target.name]: e.target.value};
-                              return [...prev];
-                            });
-                          }}
-                        />            
-                      </Grid> 
-                      <Grid item lg={5}>
-                        <TextField
-                          name="field_key"
-                          required
-                          fullWidth
-                          size="small"
-                          id="field_key"
-                          label='Field Key'
-                          autoFocus
-                          value={f.field_key}
-                          onChange={(e) => {     
-                          // @ts-ignore
-                            setFields((prev) => {
-                            // @ts-ignore
-                              var item = prev.find(x => x.id === f.id);
-                              const index = prev.indexOf(item);
-                              prev[index] = { ...item, [e.target.name]: e.target.value};
-                              return [...prev];
-                            });
-                          }}
-                        />            
-                      </Grid> 
-                    </Grid> 
-                    <Grid container spacing={2}>
-                      <Grid item lg={5}>
-                        <TextField
-                          name="x"
-                          required
-                          type="number"
-                          size="small"
-                          id="x"
-                          fullWidth
-                          label={"x"}
-                          autoFocus
-                          value={f.x}
-                          onChange={(e) => {
-                          // @ts-ignore
-                            setFields((prev) => {
-                            // @ts-ignore
-                              var item = prev.find(x => x.id === f.id);
-                              const index = prev.indexOf(item);
-                              prev[index] = { ...item, [e.target.name]: e.target.value};
-                              return [...prev];
-                            });
-                          }}
-                        />            
-                      </Grid> 
-                      <Grid item lg={5}>
-                        <TextField
-                          name="y"
-                          required
-                          fullWidth
-                          type="number"
-                          size="small"
-                          id="y"
-                          label='y'
-                          autoFocus
-                          value={f.y}
-                          onChange={(e) => {
-                          // @ts-ignore
-
-                            setFields((prev) => {
-                            // @ts-ignore
-
-                              var item = prev.find(x => x.id === f.id);
-                              const index = prev.indexOf(item);
-                              prev[index] = { ...item, [e.target.name]: e.target.value};
-                              return [...prev];
-                            });
-                          }}
-                        />            
+                      <Grid item lg={12} justifyContent="center" display={"flex"}>
+                        <Button variant="contained" onClick={() => handleAddField(signer.identifier)}> Add Signature </Button>
+                      </Grid>
+                      <Divider style={{marginTop: "1rem", marginBottom: "1rem"}}></Divider>
+                      <Grid item lg={12}>
+                        {signer.fields.map((f: any)=> {
+                          return (
+                            <Grid key={f.id} display="flex" justifyContent={"space-between"} my={2} p={1} component={Paper}>
+                              <span> Signature #{f.id} </span>
+                              <Button variant="outlined" onClick={() => handleRemoveField(signer.identifier)}> Delete field</Button>
+                            </Grid>
+                          );
+                        })}
                       </Grid> 
                     </Grid> 
                   </Box>
@@ -236,114 +141,14 @@ const AddSignatures = ({
      
             );
           })}
-          <Button disabled={fields.length <= 0} onClick={handleCreateAgreement}  fullWidth variant="contained" color="primary"> Next</Button>
+          <Divider style={{marginTop: "2rem", marginBottom: "2rem"}}></Divider>
+
+          <Button disabled={signers.length <= 0} onClick={() => setCurrentStep(2)}  fullWidth variant="contained" color="primary"> Next</Button>
         </Paper>
       </Grid>
     </Grid>
   );
 };
 
-
-type Props = {
-    user?: {
-      id: string
-      email: string
-    }
-  }
-
-const PDFEditor = ({pdf, handleCreateAgreement }: {pdf: any, handleCreateAgreement: () => void}) => {
-  const router = useRouter();
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [pdfDescription, setPdfDescription] = useState<
-    { identifier: string; fields: string[] }[]
-  >([{identifier: "Signature Field", fields: []}, {identifier: "Date", fields: []}]);
-
-
-  const handleNewField = async ({
-    x,
-    y,
-    page,
-    identifier,
-  }: {
-    x: number;
-    y: number;
-    page: number;
-    identifier: string;
-  }) => {
-    if (!pdf) return;
-    const doc = await PDFDocument.load(pdf);
-
-    const fieldName = Date.now().toString();
-    const button = doc
-      .getForm()
-      .createButton(`button-${Date.now().toString()}`);
-    button.addToPage("", doc.getPage(page - 1), {
-      x,
-      y,
-      width: 20,
-      height: 14,
-      borderWidth: 0,
-    });
-
-    const field = doc.getForm().createTextField(Date.now().toString());
-    field.setText(`${identifier} signature`);
-    field.addToPage(doc.getPage(page - 1), {
-      x: x + 20,
-      y,
-      width: 80,
-      height: 14,
-      borderWidth: 0,
-    });
-
-    setPdfDescription((pdfDescription) => {
-      const index = pdfDescription.findIndex(
-        (signer) => signer.identifier === identifier
-      );
-      if (index < 0) {
-        return [...pdfDescription, { identifier, fields: [fieldName] }];
-      }
-
-      return pdfDescription.map((signer) => {
-        if (signer.identifier !== identifier) return signer;
-
-        return { ...signer, fields: [...signer.fields, fieldName] };
-      });
-    });
-  };
-
-  const handleAddSigner = (text?: string) => {
-    setPdfDescription((pdfDescription) => [
-      ...pdfDescription,
-      {
-        identifier: text || `Signature ${pdfDescription.length + 1 }`,
-        fields: [],
-      },
-    ]);
-  };
-
-  const handleUpdateSigner =
-    (oldIdentifier: string) => (newIdentifier: string) => {
-      setPdfDescription((pdfDescription) => {
-        return pdfDescription.map((signer) => {
-          if (signer.identifier !== oldIdentifier) return signer;
-          return { ...signer, identifier: newIdentifier };
-        });
-      });
-    };
-
-
-  return (
-    <AddSignatures
-      pdf={pdf}
-      signers={pdfDescription.map((signer) => signer.identifier)}
-      onAddSigner={handleAddSigner}
-      onUpdateSigner={handleUpdateSigner}
-      onAddField={handleNewField}
-      handleFile={() => {}}
-      handleCreateAgreement={handleCreateAgreement}
-    />
-  );
-};
 
 export default PDFEditor;

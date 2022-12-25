@@ -4,7 +4,7 @@ const NoSSRComponent = dynamic(() => import("./kova"), {
   ssr: false,
 });
 
-export default function TestsPage(props: any) {
+export default function PDFEditor(props: any) {
   //@ts-ignore
   return <NoSSRComponent {...props} />;
 }

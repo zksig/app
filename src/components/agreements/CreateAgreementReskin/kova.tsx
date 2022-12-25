@@ -12,16 +12,18 @@ type Props = {
   height: number;
 };
 
-
 type KonvaProps = {
-  fields: [any],
-  setFields: () => void, 
-  pdf: any
+  signers: [any],
+  setSigners: () => void, 
+  pdf: any,
+  page: number,
+  setTotalPages: () => void
 }
 
 const getPdfImageCanvas = async (
   pdf: any,
-  page: number
+  page: number,
+  setTotalPages: (p: number) => void
 ): Promise<{
   canvas: HTMLCanvasElement;
   width: number;
@@ -29,9 +31,10 @@ const getPdfImageCanvas = async (
 }> => {
   const doc = await pdfjsLib.getDocument(pdf).promise;
   const pdfPage = await doc.getPage(page);
-  const viewport = pdfPage.getViewport({ scale: .9 });
+  const viewport = pdfPage.getViewport({ scale: 1 });
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
+  setTotalPages(doc?.numPages);
   if (context) {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
@@ -60,71 +63,84 @@ function PDFShape({ pdfCanvas, width, height }: Props) {
   );
 }
 
-const Kova = ({fields, setFields, pdf}: KonvaProps) => {
+const Kova = ({signers, setSigners, pdf, page, setTotalPages}: KonvaProps) => {
   const [pdfCanvas, setPdfCanvas] = React.useState({width: 0, height: 0, canvas: "" as any});
   const {width, height} = pdfCanvas;
   // TODO fix any typing
   const stageRef = React.useRef(null) as any;
   const rectRef = React.useRef() as any;
-  const FieldsDisplay = fields.map(f => {
-    return( <>
-      <Rect
-        x={f.x}
-        y={f.y}
-        width={200}
-        height={20}
-        stroke={ "black"}
-        fill={ "lightblue"}
-        ref={rectRef}
-      />
-      <Text
-        key={f.id}
-        text={f.text}
-        x={f.x}
-        fontSize={18}
-        y={f.y}
-        draggable
-        fill={f.isDragging ? "green" : "black"}
-        onDragStart={() => {
-          //@ts-ignore
-          setFields((prev) => {
+  const FieldsDisplay = signers.map((signer, signerIndex: number) => {
+    return signer.fields.map((f: any) => {
+      if(f.page !== page) return;
+      return( <>
+        <Rect
+          x={f.x}
+          y={f.y}
+          width={200}
+          height={18}
+          fill={ "lightblue"}
+          stroke={"black"}
+          strokeWidth={1}
+          ref={rectRef}
+        />
+        <div style={{display: "flex", justifyContent: "center", alignItems: "center", paddingTop: ".5rem"}}>
+          <Text
+            key={f.id}
+            text={"  " + signer.identifier + " - " + "Signature #" + f.id}
+            x={f.x}
+            fontSize={12}
+            y={f.y}
+            draggable
+            fill={f.isDragging ? "green" : "black"}
+            onDragStart={() => {
             //@ts-ignore
-            var item = prev.find(x => x.id === f.id);
-            const index = prev.indexOf(item);
-            prev[index] = { ... item, isDragging: true};
-            return [...prev];
-          });
-        }}
-        onDragEnd={(e: any) => {
-          //@ts-ignore
-          setFields((prev) => {
+              setSigners((prev) => {
+              //@ts-ignore
+                var item = prev.find(x => x.id === signer.id);
+                const index = prev.indexOf(item);
+                prev[index] = { ... item, isDragging: true};
+                return [...prev];
+              });
+            }}
+            onDragEnd={(e: any) => {
             //@ts-ignore
-            var item = prev.find(x => x.id === f.id);
-            const index = prev.indexOf(item);
-            prev[index] = { ...item, isDragging: false,
-              x: e.target.x(),
-              y: e.target.y(), id: item.id};
-            return [...prev];
-          });
-        }}
-      />
-    </>);
+              setSigners((prev) => {
+              //@ts-ignore
+                const updateFields = signer.fields.map((field: any) => {
+                  if(field.id !== f.id) return field;
+                  if(field.id === f.id)  {
+                    return {
+                      x: e.target.x(),
+                      y: e.target.y(),
+                      id: f.id,
+                      page: f.page
+                    }; 
+                  }
+                });
+                prev[signerIndex] = { ...signer, isDragging: false, fields: updateFields};
+                return [...prev];
+              });
+            }}
+          />
+        </div>
+      </>);
+    });
   });
   useEffect(() => {
     (async() => {
       if(!pdf) return;
-      const x = await getPdfImageCanvas(pdf, 1) as any;
+      const x = await getPdfImageCanvas(pdf, page || 1, setTotalPages) as any;
       setPdfCanvas(x);
     })();
-  }, [pdf]);
+  }, [pdf, page]);
 
   return (
-    <Box mx={3}>
+    <Box>
       {/* @ts-ignore */}
       <Stage width={width} height={height} ref={stageRef}>
         <Layer>
           {pdfCanvas.width > 0 && <PDFShape width={pdfCanvas.width} height={pdfCanvas.height} pdfCanvas={pdfCanvas.canvas}/>}   
-          {FieldsDisplay}
+          {FieldsDisplay.flat()}
         </Layer>
       </Stage>
     </Box>
