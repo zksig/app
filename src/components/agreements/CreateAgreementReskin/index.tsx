@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import {  useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
-import { PDFDocument } from "pdf-lib";
-import { useRouter } from "next/router";
-import { Button, Divider, Grid, Paper, TextField, Typography } from "@mui/material";
+import { Button, Divider, FormControl, Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material";
 import PDFEdiot from "./dynamic";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -11,33 +9,36 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Box } from "@mui/system";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
+export type FieldData = { x: number, y: number, id: number, page: number, isDragging: Boolean}
+export type SignerData = { identifier: string; fields: FieldData[] }
+
 const PDFEditor = ({
   pdf,
-  handleCreateAgreement,
   setCurrentStep,
   signers, 
-  setSigners
+  setSigners,
+  setSharing,
+  sharing
 }: {
   pdf?: Uint8Array;
-  handleCreateAgreement: () => void
   setCurrentStep: (n: number) => void
   signers: any[],
   setSigners: (x: any) => void
+  setSharing: (method: string) => void
+  sharing: string | null
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
 
   const handleAddSigner = () => {
-    // @ts-ignore
-    setSigners((prev) => {
+    setSigners((prev: any) => {
       return [...prev, {id: prev.length, identifier: `New Signer ${prev.length + 1}`, fields: [{x: 10, y: 10, isDragging: false, id: 1, page: currentPage}]}];
     });
   };
   const handleAddField = (identifier: string) => {
     setSigners((prev: any) => {
-      // @ts-ignore
-      var item = prev.find(x => x.identifier === identifier);
+      var item = prev.find((x: SignerData) => x.identifier === identifier);
       const index = prev.indexOf(item);
       prev[index] = { ...item, fields: [...item.fields, {x: 10, y: 10, id: item.fields.length + 1, page: currentPage}]};
       return [...prev];
@@ -45,9 +46,7 @@ const PDFEditor = ({
   };
   const handleRemoveField = (identifier: string) => {
     setSigners((prev: any) => {
-      console.log(identifier);
-      // @ts-ignore
-      var item = prev.find(x => x.identifier === identifier);
+      var item = prev.find((x: SignerData) => x.identifier === identifier);
       const index = prev.indexOf(item);
       item.fields.splice(index, 1);
       prev[index] = { ...item, fields: item.fields.map((f: any, i: number) => ({...f, id: i + 1}))};
@@ -75,6 +74,20 @@ const PDFEditor = ({
         <Paper elevation={9} style={{padding: "1rem"}}>
           <Typography variant="h5" fontWeight={600} padding={1} textAlign="center">Configuration</Typography>
           <Grid container spacing={2} justifyContent="space-evenly" display={"flex"}>
+            <FormControl fullWidth style={{margin: ".5rem"}}>
+              <InputLabel id="demo-simple-select-label">Sharing Options</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={sharing || ""}
+                label="Sharing Options"
+                size="small"
+                onChange={({ target }) => setSharing(target.value)}
+              >
+                <MenuItem value="address">Share via Address</MenuItem>
+                <MenuItem value="url">Share via URL (coming soon)</MenuItem>
+              </Select>
+            </FormControl>
             <Grid item lg={6}  justifyContent="space-evenly" display={"flex"}>
               <Button variant="contained" onClick={handleAddSigner}>
                 <Typography style={{ display: "inline"}}>

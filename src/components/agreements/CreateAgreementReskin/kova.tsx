@@ -1,12 +1,12 @@
-import React, { Fragment, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Stage, Layer, Text, Image, Rect, Shape } from "react-konva";
-import jsPDF from "jspdf";
-import { Button } from "@mui/material";
+import useImage from "use-image";
 import { Box } from "@mui/system";
 import * as pdfjsLib from "pdfjs-dist";
+import { FieldData } from ".";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-type Props = {
+type PDFShapeProps = {
   pdfCanvas: HTMLCanvasElement;
   width: number;
   height: number;
@@ -14,7 +14,7 @@ type Props = {
 
 type KonvaProps = {
   signers: [any],
-  setSigners: () => void, 
+  setSigners: (x: any) => void, 
   pdf: any,
   page: number,
   setTotalPages: () => void
@@ -51,7 +51,7 @@ const getPdfImageCanvas = async (
   };
 };
 
-function PDFShape({ pdfCanvas, width, height }: Props) {
+function PDFShape({ pdfCanvas, width, height }: PDFShapeProps) {
   return (
     <Shape
       width={width}
@@ -62,6 +62,11 @@ function PDFShape({ pdfCanvas, width, height }: Props) {
     />
   );
 }
+
+const ZKSigLogo = ({x, y}: {x: number, y: number}) => {
+  const [image] = useImage("/logo_v3.png");
+  return <Image image={image}  alt="company logo" width={20} height={16} x={x} y={y + 1}/>;
+};
 
 const Kova = ({signers, setSigners, pdf, page, setTotalPages}: KonvaProps) => {
   const [pdfCanvas, setPdfCanvas] = React.useState({width: 0, height: 0, canvas: "" as any});
@@ -83,46 +88,41 @@ const Kova = ({signers, setSigners, pdf, page, setTotalPages}: KonvaProps) => {
           strokeWidth={1}
           ref={rectRef}
         />
-        <div style={{display: "flex", justifyContent: "center", alignItems: "center", paddingTop: ".5rem"}}>
-          <Text
-            key={f.id}
-            text={"  " + signer.identifier + " - " + "Signature #" + f.id}
-            x={f.x}
-            fontSize={12}
-            y={f.y}
-            draggable
-            fill={f.isDragging ? "green" : "black"}
-            onDragStart={() => {
-            //@ts-ignore
-              setSigners((prev) => {
-              //@ts-ignore
-                var item = prev.find(x => x.id === signer.id);
-                const index = prev.indexOf(item);
-                prev[index] = { ... item, isDragging: true};
-                return [...prev];
+        <ZKSigLogo x={f.x} y={f.y}/>
+        <Text
+          key={f.id}
+          text={"  " + signer.identifier + " - " + "Signature #" + f.id}
+          x={f.x + 16}
+          fontSize={12}
+          y={f.y + 4}
+          draggable
+          fill={f.isDragging ? "green" : "black"}
+          onDragStart={() => {
+            setSigners((prev: any) => {
+              var item = prev.find((x: FieldData)=> x.id === signer.id);
+              const index = prev.indexOf(item);
+              prev[index] = { ... item, isDragging: true};
+              return [...prev];
+            });
+          }}
+          onDragEnd={(e: any) => {
+            setSigners((prev: any[]) => {
+              const updateFields = signer.fields.map((field: FieldData) => {
+                if(field.id !== f.id) return field;
+                if(field.id === f.id)  {
+                  return {
+                    x: e.target.x(),
+                    y: e.target.y(),
+                    id: f.id,
+                    page: f.page
+                  }; 
+                }
               });
-            }}
-            onDragEnd={(e: any) => {
-            //@ts-ignore
-              setSigners((prev) => {
-              //@ts-ignore
-                const updateFields = signer.fields.map((field: any) => {
-                  if(field.id !== f.id) return field;
-                  if(field.id === f.id)  {
-                    return {
-                      x: e.target.x(),
-                      y: e.target.y(),
-                      id: f.id,
-                      page: f.page
-                    }; 
-                  }
-                });
-                prev[signerIndex] = { ...signer, isDragging: false, fields: updateFields};
-                return [...prev];
-              });
-            }}
-          />
-        </div>
+              prev[signerIndex] = { ...signer, isDragging: false, fields: updateFields};
+              return [...prev];
+            });
+          }}
+        />
       </>);
     });
   });

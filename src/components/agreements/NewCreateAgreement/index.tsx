@@ -3,19 +3,23 @@ import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocument } from "pdf-lib";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useIPFS } from "../../../providers/IPFSProvider";
+import Stepper from "../../common/Stepper";
+import ConfigureAgreement from "./ConfigureAgreement";
+import DocumentPreview from "./DocumentPreview";
+import AddSignatures from "./AddSignatures";
+import { Button, Grid, TextField, Typography } from "@mui/material";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { classes } from "./styles";
+import Review from "./Review";
+import PDFEditor from "../CreateAgreementReskin/index";
 import { encryptAgreementAndPin } from "../../../utils/files";
 import {
   createAgreement,
   getAddress,
   signMessage,
 } from "../../../services/digitalSignatures";
-import Stepper from "../../common/Stepper";
-import ConfigureAgreement from "./ConfigureAgreement";
-import { Button, Grid, TextField, Typography } from "@mui/material";
-import { classes } from "./styles";
-import Review from "./Review";
-import PDFEditor from "../CreateAgreementReskin";
+import { useIPFS } from "../../../providers/IPFSProvider";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -29,11 +33,13 @@ const NewCreateAgreement = () => {
   const router = useRouter();
   const ipfs = useIPFS();
   const [identifier, setIdentifier] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+  const [sharing, setSharing] = useState<string | null>(null);
   const [pdf, setPdf] = useState<Uint8Array>();
   const [loading, setLoading] = useState<boolean>(false);
   const [pdfDescription, setPdfDescription] = useState<
-  { identifier: string; fields: string[] }[]
->([]);
+    { identifier: string; fields: string[] }[]
+  >([]);
 
   const [currentStep, setCurrentStep] = useState<number>(0);
 
@@ -123,7 +129,8 @@ const NewCreateAgreement = () => {
         </Button>
       </Grid>
     </Grid>,
-    <PDFEditor key={"add-signature"} pdf={pdf} handleCreateAgreement={handleCreateAgreement} setCurrentStep={setCurrentStep} signers={pdfDescription} setSigners={setPdfDescription}/>,
+    <PDFEditor key={"add-signature"} sharing={sharing} setSharing={setSharing} pdf={pdf} setCurrentStep={setCurrentStep} signers={pdfDescription} setSigners={setPdfDescription}/>,
+
     <Review
       key={"Review"}
       signers={pdfDescription.map((signer) => signer.identifier)}
@@ -163,7 +170,9 @@ const NewCreateAgreement = () => {
       <Grid item xs={3} />
 
       <Grid item lg={12}>
-        {content[currentStep]}
+        <DndProvider backend={HTML5Backend}>
+          {content[currentStep]}
+        </DndProvider>
       </Grid>
     </Grid>
   );

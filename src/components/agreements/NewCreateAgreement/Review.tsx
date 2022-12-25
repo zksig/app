@@ -54,7 +54,7 @@ const Review = ({
             marginBottom: "8px",
           }}
         >
-          Signers Addresses for {identifier}:
+          Signers Addresses for - {identifier}:
         </Typography>
       </Grid>
       {signers.map((signer: string, index: number) => (
