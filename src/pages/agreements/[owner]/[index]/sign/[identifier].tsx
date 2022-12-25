@@ -1,72 +1,51 @@
 import type { NextPage } from "next";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { useIPFS } from "../../../../../providers/IPFSProvider";
 import Sign from "../../../../../components/agreements/Sign";
 import {
-  downloadAndDecrypt,
-  encryptAgreementAndPin,
-} from "../../../../../utils/files";
-import {
-  Agreement,
-  getAgreement,
-  sign,
-  signMessage,
+  useAgreement,
+  useDigitalSignatureContract,
+  useSign,
 } from "../../../../../services/digitalSignatures";
 
 const SignAgreementPage: NextPage = () => {
   const router = useRouter();
-  const ipfs = useIPFS();
-  const [agreement, setAgreement] = useState<Agreement>();
+  const contract = useDigitalSignatureContract();
+  const sign = useSign();
 
   const index = Number(router.query.index as string);
   const identifier = router.query.identifier as string;
   const encryptionPW = decodeURIComponent(router.query.pw as string);
+  const { agreement, refetch } = useAgreement({
+    address: router.query.owner as string,
+    index,
+  });
   const signature = agreement?.constraints.find(
     (constraint) => constraint.identifier === identifier
   );
 
-  const refetchAgreement = useCallback(async () => {
-    setAgreement(await getAgreement(index, router.query.owner as string));
-  }, [router.query.owner, index]);
-
   const handleSign = useCallback(async () => {
     try {
-      if (!ipfs) throw new Error("IPFS not loaded");
       if (!agreement) throw new Error("Missing agreement");
 
-      const pdf = await downloadAndDecrypt({
-        encryptionPWBytes: new Uint8Array(Buffer.from(encryptionPW, "base64")),
-        cid: agreement.encryptedCid,
-      });
-
-      const encryptionPWBytes = await signMessage(
-        `Encrypt PDF for ${agreement.identifier}`
+      const pdf = await contract.getAgreementPDF(
+        agreement,
+        Buffer.from(encryptionPW, "base64")
       );
-
-      const cid = await encryptAgreementAndPin({
-        encryptionPWBytes,
-        pdf,
-        name: `Signature - ${identifier} on ${agreement.identifier}`,
-      });
 
       await sign({
         agreement,
         identifier,
-        encryptedCid: cid,
+        pdf,
       });
 
-      await refetchAgreement();
+      await refetch();
       toast.success("Signature complete");
     } catch (e: any) {
       toast.error(`Error signing agreement: ${e.message}`);
     }
-  }, [signMessage, agreement, ipfs, index, refetchAgreement, encryptionPW]);
-
-  useEffect(() => {
-    refetchAgreement();
-  }, [refetchAgreement]);
+  }, [contract, agreement, encryptionPW, identifier, refetch, sign]);
 
   if (!agreement || !signature) return null;
 

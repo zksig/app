@@ -1,19 +1,9 @@
 import type { NextPage } from "next";
-import { useEffect, useState } from "react";
 import SignatureList from "../../components/signatures/SignatureList";
-import {
-  SignaturePacket,
-  getSignatures,
-} from "../../services/digitalSignatures";
+import { useSignatures } from "../../services/digitalSignatures";
 
 const SignaturesPage: NextPage = () => {
-  const [signatures, setSignatures] = useState<SignaturePacket[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      setSignatures(await getSignatures());
-    })();
-  }, []);
+  const { signatures } = useSignatures();
 
   return (
     <>

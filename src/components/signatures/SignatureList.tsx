@@ -1,13 +1,6 @@
+import type { SignaturePacket } from "@zksig/sdk";
 import Link from "next/link";
 import Badge from "../common/Badge";
-import { SignaturePacket } from "../../services/digitalSignatures";
-
-const colorByStatus = {
-  pending: "bg-yellow-500",
-  complete: "bg-indigo-500",
-  approved: "bg-teal-500",
-  rejected: "bg-rose-500",
-};
 
 export default function SignatureList({
   signatures,

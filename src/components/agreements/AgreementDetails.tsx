@@ -1,51 +1,44 @@
-import { useState } from "react";
+import type { Agreement } from "@zksig/sdk";
+import { useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { constants, ethers } from "ethers";
-import { useIPFS } from "../../providers/IPFSProvider";
-import Badge from "../common/Badge";
-import { colorByStatus, statusTitle } from "../../utils/ui";
-import Button from "../common/Button";
-import { useCallback } from "react";
-import { downloadAndDecrypt } from "../../utils/files";
-import { Agreement, signMessage } from "../../services/digitalSignatures";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import Badge from "../common/Badge";
+import Button from "../common/Button";
+import { colorByStatus, statusTitle } from "../../utils/ui";
+import { useDigitalSignatureContract } from "../../services/digitalSignatures";
 
 export default function AgreementDetails({
   agreement,
 }: {
   agreement: Agreement;
 }) {
-  const ipfs = useIPFS();
+  const contract = useDigitalSignatureContract();
   const [pdfUrl, setPdfUrl] = useState("");
   const [encryptionPWBytes, setEncryptionPWBytes] = useState<Uint8Array>();
 
   const getEncyptionPWBytes = useCallback(async () => {
-    if (!signMessage) throw new Error("Wallet not connected");
-
-    const encryptionPWBytes = await signMessage(
-      `Encrypt PDF for ${agreement.identifier}`
+    const encryptionPWBytes = await contract.getAgreementEncryptionMessage(
+      agreement
     );
     setEncryptionPWBytes(encryptionPWBytes);
 
     return encryptionPWBytes;
-  }, [signMessage, agreement]);
+  }, [agreement, contract]);
 
   const handleDecryptPdf = useCallback(async () => {
     try {
-      if (!ipfs) throw new Error("IPFS not ready");
-
-      const pdf = await downloadAndDecrypt({
-        encryptionPWBytes: encryptionPWBytes || (await getEncyptionPWBytes()),
-        cid: agreement.encryptedCid,
-      });
-
+      const pdf = await contract.getAgreementPDF(
+        agreement,
+        encryptionPWBytes || (await getEncyptionPWBytes())
+      );
       setPdfUrl(
         `data:application/pdf;base64,${Buffer.from(pdf!).toString("base64")}`
       );
     } catch (e: any) {
       toast.error(`Unable to decrypt agreement: ${e.message}`);
     }
-  }, [ipfs, agreement, getEncyptionPWBytes]);
+  }, [agreement, contract, encryptionPWBytes, getEncyptionPWBytes]);
 
   const signaturesDisplay = agreement.constraints.map((constraint) => (
     <li key={constraint.identifier}>
@@ -139,17 +132,17 @@ export default function AgreementDetails({
           text={statusTitle[agreement.status]}
           color={colorByStatus[agreement.status]}
         />
-        {agreement.nftContractAddress !== ethers.constants.AddressZero ? (
+        {agreement.agreementCallback !== ethers.constants.AddressZero ? (
           <>
             <Badge className="w-12" color="bg-fuchsia-500" text="NFT" />
             <button
               className="flex items-center gap-1"
               onClick={() => {
-                navigator.clipboard.writeText(agreement.nftContractAddress!);
+                navigator.clipboard.writeText(agreement.agreementCallback!);
                 toast.success("NFT Address stored in clipboard");
               }}
             >
-              <span>{agreement.nftContractAddress}</span>
+              <span>{agreement.agreementCallback}</span>
               <ClipboardDocumentIcon className="w-6" />
             </button>
           </>

@@ -1,19 +1,13 @@
 import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-import { PDFDocument } from "pdf-lib";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
-import { useIPFS } from "../../providers/IPFSProvider";
 import Button from "../common/Button";
-import { encryptAgreementAndPin, pinFile } from "../../utils/files";
-import {
-  createAgreement,
-  getAddress,
-  signMessage,
-} from "../../services/digitalSignatures";
 import { Switch, Tab } from "@headlessui/react";
+import { useSigner } from "wagmi";
+import * as pdfjsLib from "pdfjs-dist";
+import { ZKsigAgreement } from "@zksig/sdk";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -24,16 +18,16 @@ type AddFieldOptions = {
 };
 
 const ConfigureAgreement = ({
-  pdf,
+  isInitialized,
   onChangePdf,
 }: {
-  pdf?: Uint8Array;
+  isInitialized: boolean;
   onChangePdf: (file: File) => void;
 }) => (
   <div>
     <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
       <div className="space-y-1 text-center">
-        {pdf ? (
+        {isInitialized ? (
           <>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -188,13 +182,11 @@ const Signature = ({
 };
 
 const Drop = ({
-  pdf,
   currentPage,
   canvas,
   onAddField,
   children,
 }: {
-  pdf?: Uint8Array;
   currentPage: number;
   canvas: RefObject<HTMLCanvasElement>;
   onAddField: (options: AddFieldOptions) => void;
@@ -204,8 +196,6 @@ const Drop = ({
     () => ({
       accept: "signature",
       drop: async (item: { title: string }, monitor) => {
-        if (!pdf) return;
-
         const rect = canvas.current!.getBoundingClientRect();
         const x = monitor.getSourceClientOffset()!.x - rect.left;
         const y =
@@ -214,20 +204,20 @@ const Drop = ({
         onAddField({ x, y, page: currentPage, identifier: item.title });
       },
     }),
-    [pdf]
+    []
   );
 
   return <div ref={drop}>{children}</div>;
 };
 
 const AddSignatures = ({
-  pdf,
+  agreement,
   signers,
   onAddSigner,
   onUpdateSigner,
   onAddField,
 }: {
-  pdf?: Uint8Array;
+  agreement: ZKsigAgreement;
   signers: string[];
   onAddSigner: (identifier?: string) => void;
   onUpdateSigner: (oldIdentifier: string) => (newIdentifier: string) => void;
@@ -235,13 +225,11 @@ const AddSignatures = ({
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const description = agreement.getDescription();
 
   useEffect(() => {
-    if (!pdf) return;
-
     (async () => {
-      const doc = await pdfjsLib.getDocument(pdf).promise;
+      const doc = await pdfjsLib.getDocument(await agreement.toBytes()).promise;
       const page = await doc.getPage(currentPage);
       const viewport = page.getViewport({ scale: 1 });
 
@@ -249,14 +237,12 @@ const AddSignatures = ({
       canvas.current!.height = viewport.height;
       canvas.current!.width = viewport.width;
 
-      setTotalPages(doc.numPages);
-
       await page.render({
         canvasContext: context!,
         viewport,
       });
     })();
-  }, [canvas, pdf, currentPage]);
+  }, [canvas, agreement, description, currentPage]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -268,12 +254,11 @@ const AddSignatures = ({
             value={currentPage}
             onChange={({ target }) => setCurrentPage(parseInt(target.value))}
           />{" "}
-          / {totalPages}
+          / {agreement.getTotalPages()}
         </section>
 
         <div className="grid grid-cols-2">
           <Drop
-            pdf={pdf}
             onAddField={onAddField}
             currentPage={currentPage}
             canvas={canvas}
@@ -306,50 +291,23 @@ const AddSignatures = ({
 
 const CreateAgreement = () => {
   const router = useRouter();
-  const ipfs = useIPFS();
+  const { data: signer } = useSigner();
+  const [agreement, setAgreement] = useState(new ZKsigAgreement());
   const [selectedTab, setSelectedTab] = useState(0);
   const [identifier, setIdentifier] = useState("");
   const [makeNft, setMakeNft] = useState(true);
-  const [nftImagePage, setNftImagePage] = useState(0);
-  const [pdf, setPdf] = useState<Uint8Array>();
   const [loading, setLoading] = useState<boolean>(false);
   const [pdfDescription, setPdfDescription] = useState<
     { identifier: string; fields: string[] }[]
   >([]);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf || !signMessage) return;
+    if (!signer) return;
 
     try {
       setLoading(true);
-
-      const encryptionPWBytes = await signMessage(
-        `Encrypt PDF for ${identifier}`
-      );
-      const address = await getAddress();
-
-      const [encryptedCid, descriptionCid, pdfIPFS] = await Promise.all([
-        encryptAgreementAndPin({
-          pdf,
-          name: `${address}: ${identifier}`,
-          encryptionPWBytes,
-        }),
-        pinFile({
-          file: Buffer.from(JSON.stringify(pdfDescription)),
-          name: `${address}: ${identifier} Description`,
-        }),
-        ipfs.add(pdf, { wrapWithDirectory: false }),
-      ]);
-
-      await createAgreement({
-        identifier,
-        encryptedCid,
-        descriptionCid,
-        cid: pdfIPFS.cid.toV1().toString(),
-        description: pdfDescription,
-        withNFT: makeNft,
-      });
-
+      agreement.setIdentifier(identifier);
+      await agreement.createOnChain(signer);
       router.push("/agreements");
     } catch (e) {
       console.log(e);
@@ -370,75 +328,29 @@ const CreateAgreement = () => {
     page: number;
     identifier: string;
   }) => {
-    if (!pdf) return;
-    const doc = await PDFDocument.load(pdf);
-    const signatureImage = await doc.embedPng(
-      await fetch("/logo_v3.png").then((res) => res.arrayBuffer())
-    );
-
-    const fieldName = Date.now().toString();
-    const button = doc
-      .getForm()
-      .createButton(`button-${Date.now().toString()}`);
-    button.addToPage("", doc.getPage(page - 1), {
+    await agreement.addSignatureField({
       x,
       y,
-      width: 20,
-      height: 14,
-      borderWidth: 0,
-    });
-    button.setImage(signatureImage);
-
-    const field = doc.getForm().createTextField(Date.now().toString());
-    field.setText(`${identifier} signature`);
-    field.addToPage(doc.getPage(page - 1), {
-      x: x + 20,
-      y,
-      width: 80,
-      height: 14,
-      borderWidth: 0,
+      page,
+      identifier,
     });
 
-    setPdfDescription((pdfDescription) => {
-      const index = pdfDescription.findIndex(
-        (signer) => signer.identifier === identifier
-      );
-      if (index < 0) {
-        return [...pdfDescription, { identifier, fields: [fieldName] }];
-      }
-
-      return pdfDescription.map((signer) => {
-        if (signer.identifier !== identifier) return signer;
-
-        return { ...signer, fields: [...signer.fields, fieldName] };
-      });
-    });
-
-    setPdf(await doc.save());
+    setPdfDescription(agreement.getDescription());
   };
 
   const handleAddSigner = (text?: string) => {
-    setPdfDescription((pdfDescription) => [
-      ...pdfDescription,
-      {
-        identifier: text || `New Signer ${pdfDescription.length}`,
-        fields: [],
-      },
-    ]);
+    agreement.addSigner(`New Signer ${pdfDescription.length}`);
+    setPdfDescription(agreement.getDescription());
   };
 
   const handleUpdateSigner =
     (oldIdentifier: string) => (newIdentifier: string) => {
-      setPdfDescription((pdfDescription) => {
-        return pdfDescription.map((signer) => {
-          if (signer.identifier !== oldIdentifier) return signer;
-          return { ...signer, identifier: newIdentifier };
-        });
-      });
+      agreement.renameSigner(oldIdentifier, newIdentifier);
+      setPdfDescription(agreement.getDescription());
     };
 
   const handleFile = async (file: File) => {
-    setPdf(new Uint8Array(await file.arrayBuffer()));
+    agreement.init(new Uint8Array(await file.arrayBuffer()));
   };
 
   return (
@@ -459,7 +371,7 @@ const CreateAgreement = () => {
               1. Upload PDF
             </Tab>
             <Tab
-              disabled={!pdf}
+              disabled={!agreement.isInitialized}
               className={({ selected }) =>
                 `focus:ring-2" w-full rounded-lg py-2.5 text-sm font-medium leading-5 ring-white ring-opacity-60 ring-offset-2 ring-offset-purple-400 focus:outline-none ${
                   selected
@@ -517,7 +429,10 @@ const CreateAgreement = () => {
                   />
                 </Switch>
               </div>
-              <ConfigureAgreement pdf={pdf} onChangePdf={handleFile} />
+              <ConfigureAgreement
+                isInitialized={agreement.isInitialized}
+                onChangePdf={handleFile}
+              />
               <div className="flex justify-end">
                 <Button text="Next" onClick={() => setSelectedTab(1)} />
               </div>
@@ -527,7 +442,7 @@ const CreateAgreement = () => {
                 <Button text="Next" onClick={() => setSelectedTab(2)} />
               </div>
               <AddSignatures
-                pdf={pdf}
+                agreement={agreement}
                 signers={pdfDescription.map((signer) => signer.identifier)}
                 onAddSigner={handleAddSigner}
                 onUpdateSigner={handleUpdateSigner}

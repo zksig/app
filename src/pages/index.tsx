@@ -1,19 +1,11 @@
 import type { NextPage } from "next";
-import { useEffect, useState } from "react";
 import { DocumentIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { getProfile } from "../services/digitalSignatures";
+import { useProfile } from "../services/digitalSignatures";
 
 const Home: NextPage = () => {
-  const [agreementCount, setAgreementCount] = useState<number>();
-  const [signatureCount, setSignatureCount] = useState<number>();
-
-  useEffect(() => {
-    (async () => {
-      const profile = await getProfile();
-      setAgreementCount(profile.totalAgreements.toNumber());
-      setSignatureCount(profile.totalSignatures.toNumber());
-    })();
-  }, []);
+  const { profile } = useProfile();
+  const agreementCount = profile?.totalAgreements.toNumber();
+  const signatureCount = profile?.totalSignatures.toNumber();
 
   return (
     <>

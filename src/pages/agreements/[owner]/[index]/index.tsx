@@ -1,23 +1,17 @@
 import type { NextPage } from "next";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AgreementDetails from "../../../../components/agreements/AgreementDetails";
-import {
-  Agreement,
-  getAgreement,
-} from "../../../../services/digitalSignatures";
+import { useAgreement } from "../../../../services/digitalSignatures";
 
 const AgreementDetailsPage: NextPage = () => {
   const router = useRouter();
-  const [agreement, setAgreement] = useState<Agreement>();
+  const { agreement, isLoading } = useAgreement({
+    index: Number(router.query.index),
+  });
 
-  useEffect(() => {
-    (async () => {
-      setAgreement(await getAgreement(Number(router.query.index)));
-    })();
-  }, [router]);
+  console.log(agreement, isLoading);
 
-  return <>{agreement ? <AgreementDetails agreement={agreement} /> : null}</>;
+  return <>{agreement ? <AgreementDetails agreement={agreement!} /> : null}</>;
 };
 
 export default AgreementDetailsPage;

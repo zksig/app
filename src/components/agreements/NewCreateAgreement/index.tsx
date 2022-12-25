@@ -44,32 +44,10 @@ const NewCreateAgreement = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const handleCreateAgreement = async () => {
-    if (!ipfs || !pdf || !signMessage) return;
+    if (!pdf) return;
 
     try {
       setLoading(true);
-
-      const encryptionPWBytes = await signMessage(
-        `Encrypt PDF for ${identifier}`
-      );
-      const encryptedCid = await encryptAgreementAndPin({
-        pdf,
-        name: `${await getAddress()}: ${identifier}`,
-        encryptionPWBytes,
-      });
-      const [pdfIPFS, descriptionIPFS] = await Promise.all([
-        ipfs.add(pdf, { wrapWithDirectory: false }),
-        ipfs.add(JSON.stringify(pdfDescription), { wrapWithDirectory: false }),
-      ]);
-      const id = await createAgreement({
-        identifier,
-        cid: pdfIPFS.cid.toV1().toString(),
-        encryptedCid,
-        descriptionCid: descriptionIPFS.cid.toV1().toString(),
-        description: pdfDescription,
-        withNFT: true,
-      });
-
       router.push("/agreements");
     } catch (e) {
       console.log(e);

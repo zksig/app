@@ -14,6 +14,8 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import BorderColorOutlinedIcon from "@mui/icons-material/BorderColorOutlined";
 import { useRouter } from "next/router";
+import { ConnectKitButton } from "connectkit";
+import { useAccount } from "wagmi";
 
 const routes = [
   {
@@ -47,13 +49,21 @@ const TopBar = ({ path }: { path: string }) => {
       <div style={{ width: "270px", padding: "32px 90px" }}>
         <Image alt="zksig logo" src="/logo_v3.png" width="60" height="60" />
       </div>
-      <Grid container spacing={2} sx={{ p: "32px 90px" }}>
+      <Grid
+        container
+        spacing={2}
+        sx={{ p: "32px 90px" }}
+        justifyContent="space-between"
+      >
         <Grid item xs={12} md={6} sx={{ p: "0 20px" }}>
           <Typography
             sx={{ fontSize: "32px", fontWeight: "bold", color: "#F8FAFC" }}
           >
             {routes.find((r) => r.route === path)?.title}
           </Typography>
+        </Grid>
+        <Grid item>
+          <ConnectKitButton showBalance />
         </Grid>
       </Grid>
     </Box>
@@ -109,7 +119,7 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const { asPath } = useRouter();
-
+  const { isConnected } = useAccount();
   return (
     <Box
       sx={{
@@ -118,22 +128,35 @@ export default function SidebarLayout({
         width: "100vw",
       }}
     >
-      <TopBar path={asPath} />
-      <div style={{ display: "flex" }}>
-        <SideBar path={asPath} />
+      {isConnected ? (
+        <>
+          <TopBar path={asPath} />
+          <div style={{ display: "flex" }}>
+            <SideBar path={asPath} />
+            <Box
+              sx={{
+                background: "white",
+                width: "calc(100vw - 270px)",
+                height: "calc(100vh - 120px)",
+                borderRadius: "50px 0 0 0",
+                p: "60px 80px",
+                overflowY: "scroll",
+              }}
+            >
+              {children}
+            </Box>
+          </div>
+        </>
+      ) : (
         <Box
-          sx={{
-            background: "white",
-            width: "calc(100vw - 270px)",
-            height: "calc(100vh - 120px)",
-            borderRadius: "50px 0 0 0",
-            p: "60px 80px",
-            overflowY: "scroll",
-          }}
+          height="100vh"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
         >
-          {children}
+          <ConnectKitButton showBalance />
         </Box>
-      </div>
+      )}
     </Box>
   );
 }

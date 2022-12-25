@@ -1,154 +1,201 @@
-import { BigNumber, constants, Contract, providers } from "ethers";
-import DigitalSignature from "./contracts/DigitalSignature.json";
-import { getProvider } from "./evm";
+import { useCallback, useEffect, useState } from "react";
+import { Signer } from "ethers";
+import {
+  Agreement,
+  Profile,
+  SignaturePacket,
+  ZKsigAgreement,
+  ZKsigDigitalSignatureContract,
+} from "@zksig/sdk";
+import { useNetwork, useSigner } from "wagmi";
 
-export type Profile = {
-  totalAgreements: BigNumber;
-  totalSignatures: BigNumber;
+export const useDigitalSignatureContract = () => {
+  const network = useNetwork();
+  const { data: signer } = useSigner();
+  const contract = new ZKsigDigitalSignatureContract({
+    signer: signer as Signer,
+    chainId: network.chain?.id,
+  });
+
+  return contract;
 };
 
-export type SignatureConstraint = {
-  identifier: string;
-  signer: string;
-  totalUsed: BigNumber;
-  allowedToUse: BigNumber; // set to 0 for unlimited
+export const useProfile = (): {
+  isLoading: boolean;
+  profile?: Profile;
+} => {
+  const [profile, setProfile] = useState<Profile>();
+  const [isLoading, setIsLoading] = useState(true);
+  const contract = useDigitalSignatureContract();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setProfile(await contract.getProfile());
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [contract]);
+
+  return {
+    isLoading,
+    profile,
+  };
 };
 
-export type Agreement = {
-  owner: string;
-  status: number;
-  index: BigNumber;
-  identifier: string;
-  cid: string;
-  encryptedCid: string;
-  descriptionCid: string;
-  signedPackets: number;
-  totalPackets: number;
-  nftContractAddress?: string;
-  constraints: SignatureConstraint[];
+export const useCreateAgreement = () => {
+  const contract = useDigitalSignatureContract();
+
+  return async (agreement: ZKsigAgreement) => {
+    return (await contract.createAgreement(agreement)).wait(1);
+  };
 };
 
-export type SignaturePacket = {
-  agreementOwner: string;
-  agreementIndex: BigNumber;
-  index: BigNumber;
-  identifier: string;
-  encryptedCid: string;
-  signer: string;
-  nftContractAddress?: string;
-  nftTokenId?: BigNumber;
-  timestamp: number;
-  blockNumber: number;
+export const useAgreements = (
+  page = 1
+): {
+  isLoading: boolean;
+  agreements: Agreement[];
+} => {
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const contract = useDigitalSignatureContract();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setAgreements(await contract.getAgreements({ page, perPage: 10 }));
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [page, contract]);
+
+  return {
+    isLoading,
+    agreements,
+  };
 };
 
-export const getContract = () => {
-  const provider = getProvider();
-  const contract = new Contract(
-    process.env.NEXT_PUBLIC_FILECOIN_CONTRACT ||
-      "0x1E7EF1A8F6b6710c6541dBACf36C4b9173712B6A",
-    DigitalSignature.abi,
-    provider
-  );
-
-  return contract.connect(provider.getSigner());
-};
-
-export const connect = async () => {
-  const provider = await getProvider();
-  const [account] = await provider.send("eth_requestAccounts", []);
-
-  return account;
-};
-
-export const getAddress = async () => {
-  return (await getProvider().send("eth_accounts", []))[0];
-};
-
-export const getIsConnected = async () => {
-  return (await getProvider().send("eth_accounts", [])).length > 0;
-};
-
-export const signMessage = async (message: string) => {
-  return Uint8Array.from(
-    Buffer.from(await getProvider().getSigner().signMessage(message))
-  );
-};
-
-export const getProfile = async (): Promise<Profile> => {
-  return getContract().getProfile();
-};
-
-export const createAgreement = async ({
-  identifier,
-  cid,
-  encryptedCid,
-  descriptionCid,
-  description,
-  withNFT,
+export const useAgreement = ({
+  address,
+  index,
 }: {
-  identifier: string;
-  cid: string;
-  encryptedCid: string;
-  descriptionCid: string;
-  description: { identifier: string; fields: string[] }[];
-  withNFT: boolean;
-}) => {
-  const constraints = description.map(({ identifier }) => ({
+  address?: string;
+  index: number;
+}): {
+  isLoading: boolean;
+  agreement?: Agreement;
+  refetch: () => Promise<void>;
+} => {
+  const [agreement, setAgreement] = useState<Agreement>();
+  const [isLoading, setIsLoading] = useState(true);
+  const contract = useDigitalSignatureContract();
+
+  const fetchAgreement = useCallback(async () => {
+    try {
+      setAgreement(await contract.getAgreement({ address, index }));
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [index, contract, address]);
+
+  useEffect(() => {
+    fetchAgreement();
+  }, [index, contract, address, fetchAgreement]);
+
+  return {
+    isLoading,
+    agreement,
+    refetch: fetchAgreement,
+  };
+};
+
+export const useSignatures = (
+  page = 1
+): {
+  isLoading: boolean;
+  signatures: SignaturePacket[];
+} => {
+  const [signatures, setSignatures] = useState<SignaturePacket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const contract = useDigitalSignatureContract();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setSignatures(await contract.getSignatures({ page, perPage: 10 }));
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [page, contract]);
+
+  return {
+    isLoading,
+    signatures,
+  };
+};
+
+export const useSignature = ({
+  address,
+  index,
+}: {
+  address?: string;
+  index: number;
+}): {
+  isLoading: boolean;
+  signature?: SignaturePacket;
+} => {
+  const [signature, setSignature] = useState<SignaturePacket>();
+  const [isLoading, setIsLoading] = useState(true);
+  const contract = useDigitalSignatureContract();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setSignature(await contract.getSignature({ address, index }));
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [address, index, contract]);
+
+  return {
+    isLoading,
+    signature,
+  };
+};
+
+export const useSign = () => {
+  const contract = useDigitalSignatureContract();
+
+  return async ({
+    agreement,
     identifier,
-    signer: constants.AddressZero,
-    totalUsed: 0,
-    allowedToUse: 1,
-  }));
-  return (
-    await getContract().createAgreement({
-      identifier,
-      cid,
-      encryptedCid,
-      descriptionCid,
-      withNFT,
-      nftImageCid: "",
-      constraints,
-    })
-  ).wait(1);
-};
-
-export const getAgreements = async (page = 1): Promise<Agreement[]> => {
-  return getContract().getAgreements(await getAddress(), (page - 1) * 10, 10);
-};
-
-export const getAgreement = async (
-  index: number,
-  address?: string
-): Promise<Agreement> => {
-  return (
-    await getContract().getAgreements(address || (await getAddress()), index, 1)
-  )[0];
-};
-
-export const getSignatures = async (page = 1): Promise<SignaturePacket[]> => {
-  return getContract().getSignatures(await getAddress(), (page - 1) * 10, 10);
-};
-
-export const getSignature = async (index: number): Promise<SignaturePacket> => {
-  return (await getContract().getSignatures(await getAddress(), index, 1))[0];
-};
-
-export const sign = async ({
-  agreement,
-  identifier,
-  encryptedCid,
-}: {
-  agreement: Agreement;
-  identifier: string;
-  encryptedCid: string;
-}) => {
-  return (
-    await getContract().sign({
-      agreementOwner: agreement.owner,
-      agreementIndex: agreement.index,
-      identifier,
-      encryptedCid,
-      nftTokenURI: "4234234324",
-    })
-  ).wait(1);
+    pdf,
+  }: {
+    agreement: Agreement;
+    identifier: string;
+    pdf: Uint8Array;
+  }) => {
+    return (
+      await contract.sign({
+        agreement,
+        identifier,
+        pdf,
+      })
+    ).wait(1);
+  };
 };
