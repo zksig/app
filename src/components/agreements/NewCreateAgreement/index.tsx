@@ -12,6 +12,14 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { classes } from "./styles";
 import Review from "./Review";
+import PDFEditor from "../CreateAgreementReskin/index";
+import { encryptAgreementAndPin } from "../../../utils/files";
+import {
+  createAgreement,
+  getAddress,
+  signMessage,
+} from "../../../services/digitalSignatures";
+import { useIPFS } from "../../../providers/IPFSProvider";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type AddFieldOptions = {
@@ -23,14 +31,16 @@ type AddFieldOptions = {
 
 const NewCreateAgreement = () => {
   const router = useRouter();
-  const docSignatureWidth = 100;
-  const docSignatureHeight = 14;
+  const ipfs = useIPFS();
   const [identifier, setIdentifier] = useState("");
+  const [totalPages, setTotalPages] = useState(1);
+  const [sharing, setSharing] = useState<string | null>(null);
   const [pdf, setPdf] = useState<Uint8Array>();
   const [loading, setLoading] = useState<boolean>(false);
   const [pdfDescription, setPdfDescription] = useState<
     { identifier: string; fields: string[] }[]
   >([]);
+
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const handleCreateAgreement = async () => {
@@ -46,75 +56,6 @@ const NewCreateAgreement = () => {
       setLoading(false);
     }
   };
-
-  const handleNewField = async ({
-    x,
-    y,
-    page,
-    identifier,
-  }: {
-    x: number;
-    y: number;
-    page: number;
-    identifier: string;
-  }) => {
-    if (!pdf) return;
-    const doc = await PDFDocument.load(pdf);
-    const fieldName = Date.now().toString();
-    const field = doc.getForm().createTextField(Date.now().toString());
-    field.setText(`${identifier} signature`);
-    const currentPage = doc.getPage(page - 1);
-    const viewportDocument = document.getElementById("canvas");
-    //find out how much bigger the actual document is than the preview shown in the page so we can adjust the coordinates with the same proportion
-    const adjustedHeight =
-      currentPage.getHeight() / (viewportDocument?.offsetHeight || 1);
-    const adjustedWidth =
-      currentPage.getWidth() / (viewportDocument?.offsetWidth || 1);
-
-    field.addToPage(doc.getPage(page - 1), {
-      x: x * adjustedWidth,
-      y: y * adjustedHeight,
-      width: docSignatureWidth * adjustedWidth,
-      height: docSignatureHeight * adjustedHeight,
-    });
-
-    setPdfDescription((pdfDescription) => {
-      const index = pdfDescription.findIndex(
-        (signer) => signer.identifier === identifier
-      );
-      if (index < 0) {
-        return [...pdfDescription, { identifier, fields: [fieldName] }];
-      }
-
-      return pdfDescription.map((signer) => {
-        if (signer.identifier !== identifier) return signer;
-
-        return { ...signer, fields: [...signer.fields, fieldName] };
-      });
-    });
-
-    setPdf(await doc.save());
-  };
-
-  const handleAddSigner = (text?: string) => {
-    setPdfDescription((pdfDescription) => [
-      ...pdfDescription,
-      {
-        identifier: text || `New Signer ${pdfDescription.length}`,
-        fields: [],
-      },
-    ]);
-  };
-
-  const handleUpdateSigner =
-    (oldIdentifier: string) => (newIdentifier: string) => {
-      setPdfDescription((pdfDescription) => {
-        return pdfDescription.map((signer) => {
-          if (signer.identifier !== oldIdentifier) return signer;
-          return { ...signer, identifier: newIdentifier };
-        });
-      });
-    };
 
   const handleFile = async (file: File) => {
     setPdf(new Uint8Array(await file.arrayBuffer()));
@@ -166,13 +107,7 @@ const NewCreateAgreement = () => {
         </Button>
       </Grid>
     </Grid>,
-    <AddSignatures
-      key={"add-signatures"}
-      signers={pdfDescription.map((signer) => signer.identifier)}
-      onAddSigner={handleAddSigner}
-      onUpdateSigner={handleUpdateSigner}
-      setCurrentStep={setCurrentStep}
-    />,
+    <PDFEditor key={"add-signature"} sharing={sharing} setSharing={setSharing} pdf={pdf} setCurrentStep={setCurrentStep} signers={pdfDescription} setSigners={setPdfDescription}/>,
 
     <Review
       key={"Review"}
@@ -211,30 +146,10 @@ const NewCreateAgreement = () => {
         />
       </Grid>
       <Grid item xs={3} />
-      <Grid item xs={12}>
+
+      <Grid item lg={12}>
         <DndProvider backend={HTML5Backend}>
-          <Grid container spacing={2} sx={{ marginTop: "16px" }}>
-            <Grid item xs={2} />
-            <Grid item xs={4}>
-              {content[currentStep]}
-            </Grid>
-            {!!pdf ? (
-              <>
-                <Grid item xs={4}>
-                  <DocumentPreview
-                    pdf={pdf}
-                    withDrop={currentStep === 1}
-                    onAddField={handleNewField}
-                    docSignatureWidth={docSignatureWidth}
-                    docSignatureHeight={docSignatureHeight}
-                  />
-                </Grid>
-                <Grid item xs={2} />
-              </>
-            ) : (
-              <Grid item xs={6} />
-            )}
-          </Grid>
+          {content[currentStep]}
         </DndProvider>
       </Grid>
     </Grid>
